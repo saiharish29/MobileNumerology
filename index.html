@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mobile Numerology Analyzer</title>
+<style>
+:root{
+  --gold:#D4AF37;--gold2:#F5D060;--deep:#12102a;--card:#1e1c3a;
+  --card2:#26244a;--text:#f0eade;--muted:#9e9bbf;--green:#2ed573;
+  --red:#ff4757;--orange:#ffa502;--purple:#b8a4ff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--deep);color:var(--text);font-family:Georgia,serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 15% 40%,rgba(123,94,167,.12) 0%,transparent 55%),radial-gradient(ellipse at 85% 15%,rgba(212,175,55,.07) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:24px 14px 80px;}
+.tabs{display:flex;margin-bottom:20px;border-radius:12px;overflow:hidden;border:1px solid rgba(212,175,55,.25);}
+.tab-btn{flex:1;padding:11px 4px;background:rgba(255,255,255,.03);border:none;color:var(--muted);font-family:Georgia,serif;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;border-right:1px solid rgba(212,175,55,.15);}
+.tab-btn:last-child{border-right:none;}
+.tab-btn.active{background:rgba(212,175,55,.15);color:var(--gold);}
+header{text-align:center;margin-bottom:24px;}
+.mandala{font-size:38px;display:block;margin-bottom:6px;}
+h1{font-size:1.5rem;color:var(--gold);text-shadow:0 0 24px rgba(212,175,55,.4);line-height:1.3;}
+.sub{font-size:.72rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:4px;}
+.card{background:var(--card);border:1px solid rgba(212,175,55,.28);border-radius:14px;padding:20px;margin-bottom:16px;}
+.lbl{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:7px;display:block;}
+.inp{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(212,175,55,.25);border-radius:9px;padding:12px 14px;font-size:.93rem;color:var(--text);font-family:Georgia,serif;outline:none;margin-bottom:13px;-webkit-appearance:none;appearance:none;}
+.inp:focus{border-color:var(--gold);}
+input[type=date].inp{color-scheme:dark;}
+.hint{font-size:.68rem;color:#b0adcc;margin-top:-9px;margin-bottom:12px;display:block;}
+.gbtns{display:flex;gap:8px;margin-bottom:14px;}
+.gbtn{flex:1;padding:10px;background:rgba(255,255,255,.04);border:1px solid rgba(212,175,55,.2);border-radius:9px;color:var(--text);font-family:Georgia,serif;font-size:.86rem;cursor:pointer;}
+.gbtn.active{background:rgba(212,175,55,.15);border-color:var(--gold);color:var(--gold);}
+.sel-wrap{margin-bottom:13px;}
+.sel-hidden{display:none;}
+.prof-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:13px;}
+.prof-opt{padding:9px 8px;background:var(--card2);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:var(--muted);font-family:Georgia,serif;font-size:.75rem;cursor:pointer;text-align:center;line-height:1.3;}
+.prof-opt.active{background:rgba(212,175,55,.15);border-color:var(--gold);color:var(--gold);}
+.main-btn{width:100%;padding:13px;background:linear-gradient(135deg,#7a5a10,var(--gold) 50%,#7a5a10);border:none;border-radius:11px;font-family:Georgia,serif;font-size:.95rem;color:#07071a;font-weight:700;cursor:pointer;letter-spacing:.06em;}
+.stitle{font-size:.63rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(212,175,55,.18);}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.pnum{background:var(--card2);border:1px solid rgba(212,175,55,.2);border-radius:11px;padding:13px 9px;text-align:center;}
+.pv{font-size:1.9rem;color:var(--gold2);line-height:1;}
+.pl{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.pd{font-size:.66rem;color:#c8c4e0;margin-top:2px;}
+.score-wrap{text-align:center;margin-bottom:20px;}
+/* Verdict widget */
+.verdict-widget{background:var(--card);border:1px solid rgba(212,175,55,.28);border-radius:16px;padding:22px 18px;margin-bottom:18px;text-align:center;}
+.verdict-number{font-size:3.5rem;font-weight:700;color:var(--gold);line-height:1;text-shadow:0 0 24px rgba(212,175,55,.5);}
+.verdict-label{font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:3px;margin-bottom:16px;}
+.verdict-meter-wrap{background:rgba(255,255,255,.07);border-radius:100px;height:12px;margin:0 auto 18px;max-width:320px;overflow:hidden;position:relative;}
+.verdict-meter-fill{height:100%;border-radius:100px;transition:width 1s ease;}
+.verdict-zones{display:flex;justify-content:space-between;max-width:320px;margin:-6px auto 16px;padding:0 2px;}
+.verdict-zone-lbl{font-size:.55rem;color:var(--muted);letter-spacing:.06em;}
+.verdict-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:360px;margin:0 auto;}
+.vact{border-radius:12px;padding:14px 8px;text-align:center;border:2px solid transparent;transition:all .2s;}
+.vact-icon{font-size:1.6rem;margin-bottom:5px;}
+.vact-title{font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;}
+.vact-desc{font-size:.62rem;line-height:1.35;color:rgba(232,224,208,.7);}
+.vact-keep{background:rgba(46,213,115,.1);border-color:rgba(46,213,115,.35);}
+.vact-keep .vact-title{color:#2ed573;}
+.vact-tweak{background:rgba(212,175,55,.1);border-color:rgba(212,175,55,.35);}
+.vact-tweak .vact-title{color:var(--gold);}
+.vact-change{background:rgba(255,71,87,.1);border-color:rgba(255,71,87,.3);}
+.vact-change .vact-title{color:#ff4757;}
+.vact.vact-active{transform:scale(1.05);}
+.vact-active.vact-keep{background:rgba(46,213,115,.2);border-color:#2ed573;}
+.vact-active.vact-tweak{background:rgba(212,175,55,.18);border-color:var(--gold);}
+.vact-active.vact-change{background:rgba(255,71,87,.18);border-color:#ff4757;}
+.score-num{font-size:2.8rem;color:var(--gold);line-height:1;text-shadow:0 0 20px rgba(212,175,55,.5);}
+.score-lbl{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.vbadge{display:inline-block;margin-top:9px;padding:4px 15px;border-radius:100px;font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;}
+.v5{background:rgba(46,213,115,.15);border:1px solid rgba(46,213,115,.4);color:#2ed573;}
+.v4{background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);color:var(--gold);}
+.v3{background:rgba(170,168,255,.12);border:1px solid rgba(170,168,255,.3);color:#c4c0ff;}
+.v2{background:rgba(255,165,2,.12);border:1px solid rgba(255,165,2,.32);color:#ffa502;}
+.v1{background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.32);color:#ff4757;}
+.chk{display:flex;align-items:flex-start;gap:11px;background:var(--card2);border-radius:9px;padding:10px 12px;margin-bottom:7px;}
+.chk-icon{width:22px;height:22px;min-width:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;margin-top:1px;}
+.pass .chk-icon{background:rgba(46,213,115,.18);color:#2ed573;}
+.fail .chk-icon{background:rgba(255,71,87,.18);color:#ff4757;}
+.unk .chk-icon{background:rgba(255,165,2,.15);color:#ffa502;}
+.chk-text{flex:1;}
+.chk-main{font-size:.81rem;color:var(--text);font-weight:700;}
+.chk-sub{font-size:.73rem;color:#b8b5d5;margin-top:2px;line-height:1.4;}
+.abox{display:flex;align-items:flex-start;gap:10px;border-radius:11px;padding:12px 14px;margin-bottom:14px;font-size:.81rem;line-height:1.55;}
+.aok{background:rgba(212,175,55,.14);border:1px solid rgba(212,175,55,.5);color:#f5d878;}
+.awarn{background:rgba(255,71,87,.13);border:1px solid rgba(255,71,87,.45);color:#ffb3ba;}
+.ainfo{background:rgba(123,94,167,.15);border:1px solid rgba(123,94,167,.45);color:#d4c4ff;}
+.agreen{background:rgba(46,213,115,.1);border:1px solid rgba(46,213,115,.35);color:#a0f0c0;}
+.aicon{font-size:1.1rem;flex-shrink:0;margin-top:1px;}
+.pairrow{display:flex;gap:4px;flex-wrap:wrap;}
+.pp{flex:1;min-width:44px;background:var(--card2);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:7px 3px;text-align:center;}
+.ppn{font-size:.88rem;font-weight:700;color:var(--gold2);}
+.ppm{font-size:.54rem;color:var(--muted);margin-top:2px;line-height:1.2;}
+.pp-good{border-color:rgba(46,213,115,.45);background:rgba(46,213,115,.06);}
+.pp-good .ppn{color:#2ed573;}
+.pp-bad{border-color:rgba(255,71,87,.4);background:rgba(255,71,87,.06);}
+.pp-bad .ppn{color:#ff4757;}
+.pp-star{border-color:rgba(212,175,55,.55);background:rgba(212,175,55,.1);}
+.pp-star .ppn{color:var(--gold);}
+.crit-mark{color:var(--gold);font-size:.56rem;}
+.ng2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.ng3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.nc{background:var(--card2);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:12px 8px;text-align:center;}
+.nv{font-size:1.75rem;color:var(--gold2);line-height:1;}
+.nv-sm{font-size:1.2rem;color:var(--gold2);line-height:1;}
+.nn{font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+.np{font-size:.67rem;margin-top:3px;color:#c8c4e0;}
+.compound-badge{display:inline-block;font-size:.7rem;padding:2px 9px;border-radius:100px;margin-top:4px;}
+.cb-ok{background:rgba(46,213,115,.12);border:1px solid rgba(46,213,115,.3);color:#2ed573;}
+.cb-warn{background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.3);color:#ff4757;}
+.cb-karmic{background:rgba(255,71,87,.2);border:1px solid rgba(255,71,87,.5);color:#ff4757;}
+.cb-neutral{background:rgba(212,175,55,.1);border:1px solid rgba(212,175,55,.25);color:var(--gold);}
+.loshu{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-width:170px;margin:0 auto 10px;}
+.lsc{aspect-ratio:1;background:var(--card2);border:1px solid rgba(255,255,255,.08);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--gold2);font-weight:700;}
+.lsc-p{background:rgba(212,175,55,.15);border-color:rgba(212,175,55,.4);}
+.lsc-m{background:rgba(255,71,87,.08);border-color:rgba(255,71,87,.2);color:rgba(255,71,87,.5);}
+.loshu-leg{display:flex;gap:12px;justify-content:center;font-size:.65rem;color:var(--muted);margin-bottom:10px;}
+.leg-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
+.plane-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px;}
+.plane-card{background:var(--card2);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:10px 7px;text-align:center;}
+.plane-title{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+.plane-nums{font-size:.78rem;color:var(--gold2);margin-bottom:3px;}
+.plane-status{font-size:.65rem;font-weight:700;}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.cc{background:var(--card2);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:13px;text-align:center;}
+.cl{font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1.4;}
+.cv{font-size:1.55rem;color:var(--gold2);margin:4px 0 2px;}
+.cd{font-size:.66rem;color:#b8b5d5;}
+.bw{margin-top:5px;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.bf{height:100%;border-radius:3px;background:linear-gradient(90deg,#7a5a10,var(--gold));}
+.drow{display:flex;gap:4px;flex-wrap:wrap;}
+.dp{display:flex;flex-direction:column;align-items:center;background:var(--card2);border-radius:7px;padding:6px 7px;min-width:34px;flex:1;border:1px solid rgba(255,255,255,.06);}
+.dv{font-size:.9rem;color:var(--gold);}
+.dc{font-size:.6rem;color:var(--muted);}
+.dp-hl{border-color:rgba(212,175,55,.4);background:rgba(212,175,55,.08);}
+.iitem{background:var(--card2);border-left:3px solid var(--gold);border-radius:0 9px 9px 0;padding:11px 13px;font-size:.82rem;line-height:1.65;color:var(--text);margin-bottom:8px;}
+.recbox{background:rgba(123,94,167,.12);border:1px solid rgba(212,175,55,.22);border-radius:13px;padding:18px;margin-bottom:16px;}
+.recbox p{font-size:.86rem;line-height:1.7;color:var(--text);margin-bottom:8px;}
+.recbox p:last-child{margin-bottom:0;}
+.remedy-box{background:rgba(46,213,115,.07);border:1px solid rgba(46,213,115,.25);border-radius:13px;padding:18px;margin-bottom:16px;}
+.remedy-box p{font-size:.84rem;line-height:1.65;color:#c8f0d8;margin-bottom:7px;}
+.remedy-box p:last-child{margin-bottom:0;}
+.remedy-title{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:#2ed573;margin-bottom:10px;}
+.profession-box{background:rgba(212,175,55,.07);border:1px solid rgba(212,175,55,.22);border-radius:11px;padding:15px;margin-bottom:14px;}
+.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+.prof-item{background:var(--card2);border-radius:8px;padding:9px 10px;font-size:.75rem;color:#c8c4e0;border:1px solid rgba(255,255,255,.07);}
+.prof-item strong{color:var(--gold);display:block;margin-bottom:2px;font-size:.7rem;}
+.sug-info{font-size:.8rem;color:var(--muted);line-height:1.6;text-align:center;padding:6px 0 12px;}
+.gen-btn{width:100%;padding:12px;background:rgba(212,175,55,.13);border:1px solid rgba(212,175,55,.38);border-radius:10px;color:var(--gold);font-family:Georgia,serif;font-size:.88rem;font-weight:700;cursor:pointer;letter-spacing:.06em;margin-bottom:12px;}
+.dbuilder{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:12px;}
+.dbox{padding:9px 3px;background:var(--card2);border:2px solid rgba(255,255,255,.1);border-radius:9px;text-align:center;font-size:1.05rem;font-weight:700;color:var(--muted);cursor:pointer;}
+.dbox-req{background:rgba(46,213,115,.12);border-color:rgba(46,213,115,.5);color:#2ed573;}
+.dbox-bad{background:rgba(255,71,87,.1);border-color:rgba(255,71,87,.4);color:#ff4757;}
+.sug-item{background:var(--card2);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 14px;margin-bottom:8px;cursor:pointer;}
+.sug-num{font-size:1.3rem;letter-spacing:.1em;color:var(--gold2);font-weight:700;margin-bottom:6px;}
+.sug-badges{display:flex;gap:5px;flex-wrap:wrap;}
+.sb{font-size:.6rem;padding:3px 8px;border-radius:100px;font-weight:700;}
+.sb-g{background:rgba(46,213,115,.14);border:1px solid rgba(46,213,115,.35);color:#2ed573;}
+.sb-o{background:rgba(212,175,55,.13);border:1px solid rgba(212,175,55,.35);color:var(--gold);}
+.sb-b{background:rgba(123,94,167,.14);border:1px solid rgba(123,94,167,.35);color:#c4b0ff;}
+.sug-note{font-size:.68rem;color:#b8b5d5;margin-top:5px;}
+.rgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.rcard{background:var(--card2);border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:12px 10px;text-align:center;}
+.rcard-ok{border-color:rgba(46,213,115,.22);}
+.rcard-no{border-color:rgba(255,71,87,.2);}
+.ricon{font-size:1.4rem;margin-bottom:4px;}
+.rtitle{font-size:.68rem;font-weight:700;color:var(--gold);margin-bottom:2px;}
+.rdesc{font-size:.62rem;color:#c8c4e0;line-height:1.4;}
+.etable{width:100%;border-collapse:collapse;font-size:.73rem;}
+.etable th{background:rgba(212,175,55,.12);color:var(--gold);padding:7px 8px;text-align:left;font-size:.61rem;letter-spacing:.1em;text-transform:uppercase;}
+.etable td{padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.07);color:var(--text);}
+.etable tr:last-child td{border-bottom:none;}
+.enum{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;font-weight:700;font-size:.74rem;margin:1px;}
+.en-r{background:rgba(255,71,87,.2);color:#ff4757;}
+.en-g{background:rgba(46,213,115,.15);color:#2ed573;}
+footer{text-align:center;padding-top:16px;font-size:.6rem;color:rgba(122,122,154,.4);letter-spacing:.09em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="mandala">&#9784;</span>
+  <h1>Mobile Numerology</h1>
+  <p class="sub">Vedic &bull; Chaldean &bull; Feng Shui</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="t-analyze" onclick="showTab('analyze')">Analyze</button>
+  <button class="tab-btn" id="t-suggest" onclick="showTab('suggest')">Suggest</button>
+  <button class="tab-btn" id="t-rules" onclick="showTab('rules')">Rules</button>
+</div>
+
+<!-- ANALYZE TAB -->
+<div id="tab-analyze">
+  <div class="card">
+    <label class="lbl">Your Mobile Number</label>
+    <input class="inp" type="text" id="inp-mobile" placeholder="e.g. 9876543219" maxlength="15" inputmode="numeric">
+    <span class="hint">10 digits &bull; No country code &bull; No zeros</span>
+    <label class="lbl">Full Name <span style="font-size:.7em;color:var(--muted)">(Chaldean Name Number)</span></label>
+    <input class="inp" type="text" id="inp-name" placeholder="e.g. Harish Kumar">
+    <label class="lbl">Date of Birth</label>
+    <input class="inp" type="date" id="inp-dob">
+    <label class="lbl">Gender <span style="font-size:.7em;color:var(--muted)">(for Kua Number)</span></label>
+    <div class="gbtns">
+      <button class="gbtn active" id="gbtn-m" onclick="setGender('M')">Male</button>
+      <button class="gbtn" id="gbtn-f" onclick="setGender('F')">Female</button>
+    </div>
+    <label class="lbl">Profession <span style="font-size:.7em;color:var(--muted)">(for goal-based recommendation)</span></label>
+    <input type="hidden" id="inp-prof" value="">
+    <div class="prof-btns">
+      <div class="prof-opt" onclick="selProf(this,'business')">Business /<br>Entrepreneur</div>
+      <div class="prof-opt" onclick="selProf(this,'corporate')">Corporate /<br>Service</div>
+      <div class="prof-opt" onclick="selProf(this,'govt')">Government /<br>Politics</div>
+      <div class="prof-opt" onclick="selProf(this,'creative')">Creative /<br>Arts &amp; Media</div>
+      <div class="prof-opt" onclick="selProf(this,'sales')">Sales /<br>Marketing</div>
+      <div class="prof-opt" onclick="selProf(this,'health')">Health /<br>Medicine</div>
+      <div class="prof-opt" onclick="selProf(this,'spiritual')">Spiritual /<br>Teaching</div>
+      <div class="prof-opt" onclick="selProf(this,'finance')">Finance /<br>Banking &amp; Law</div>
+      <div class="prof-opt" onclick="selProf(this,'tech')">Technology /<br>Engineering</div>
+      <div class="prof-opt" onclick="selProf(this,'')">None /<br>Skip</div>
+    </div>
+    <button class="main-btn" onclick="doAnalyze()">&#10022; Analyze My Number &#10022;</button>
+  </div>
+
+  <div id="sec-profile" style="display:none">
+    <div class="stitle">Your Numerology Profile</div>
+    <div class="card"><div class="pgrid" id="out-profile"></div></div>
+  </div>
+
+  <div id="sec-results" style="display:none">
+    <div class="verdict-widget" id="verdict-widget">
+      <div class="verdict-number" id="out-score">--</div>
+      <div class="verdict-label">Compatibility Score / 100</div>
+      <div class="verdict-meter-wrap">
+        <div class="verdict-meter-fill" id="verdict-meter" style="width:0%"></div>
+      </div>
+      <div class="verdict-zones">
+        <span class="verdict-zone-lbl">Change</span>
+        <span class="verdict-zone-lbl">Caution</span>
+        <span class="verdict-zone-lbl">Neutral</span>
+        <span class="verdict-zone-lbl">Good</span>
+        <span class="verdict-zone-lbl">Excellent</span>
+      </div>
+      <div class="verdict-actions">
+        <div class="vact vact-keep" id="vact-keep">
+          <div class="vact-icon">&#10003;</div>
+          <div class="vact-title">Keep It</div>
+          <div class="vact-desc">This number works well for you</div>
+        </div>
+        <div class="vact vact-tweak" id="vact-tweak">
+          <div class="vact-icon">&#9998;</div>
+          <div class="vact-title">Tweak It</div>
+          <div class="vact-desc">Small fixes can improve vibration</div>
+        </div>
+        <div class="vact vact-change" id="vact-change">
+          <div class="vact-icon">&#8635;</div>
+          <div class="vact-title">Change It</div>
+          <div class="vact-desc">A new number will serve you better</div>
+        </div>
+      </div>
+      <div style="margin-top:14px" id="verdict-summary"></div>
+    </div>
+
+    <div class="stitle">Numerology Checklist</div>
+    <div id="out-checklist"></div>
+
+    <div id="out-alert59"></div>
+
+    <div class="stitle">Compound Number Analysis</div>
+    <div id="out-compound"></div>
+
+    <div class="stitle">Segment Analysis</div>
+    <div class="ng3" id="out-segments"></div>
+
+    <div class="stitle">Digit Pair Analysis <span style="font-size:.56rem;color:var(--muted);text-transform:none;letter-spacing:0"> &#9733; = positions 3-4 &amp; 4-5</span></div>
+    <div class="card"><div class="pairrow" id="out-pairs"></div></div>
+
+    <div class="stitle">Core Numbers</div>
+    <div class="ng2" id="out-nums"></div>
+
+    <div class="stitle">Lo Shu Grid &amp; Planes</div>
+    <div class="card" style="padding:16px">
+      <div class="loshu" id="out-loshu"></div>
+      <div class="loshu-leg">
+        <span><span class="leg-dot" style="background:rgba(212,175,55,.6)"></span>Present</span>
+        <span><span class="leg-dot" style="background:rgba(255,71,87,.5)"></span>Missing</span>
+      </div>
+      <div class="plane-row" id="out-planes"></div>
+    </div>
+
+    <div id="sec-compat" style="display:none">
+      <div class="stitle">Profile Compatibility</div>
+      <div class="cgrid" id="out-compat"></div>
+    </div>
+
+    <div class="stitle">Digit Frequency</div>
+    <div class="card" style="padding:12px"><div class="drow" id="out-freq"></div></div>
+
+    <div id="sec-profession" style="display:none">
+      <div class="stitle">Profession Alignment</div>
+      <div class="profession-box" id="out-profession"></div>
+    </div>
+
+    <div class="stitle">Insights</div>
+    <div id="out-insights"></div>
+
+    <div class="stitle">Recommendation</div>
+    <div class="recbox" id="out-rec"></div>
+
+    <div id="sec-remedy" style="display:none">
+      <div class="stitle">Remedies</div>
+      <div class="remedy-box" id="out-remedy"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUGGEST TAB -->
+<div id="tab-suggest" style="display:none">
+  <div class="card">
+    <p class="sug-info">Fill in DOB in the Analyze tab first. All suggestions: no zeros, 59/95 at positions 3-4, compatible with Driver &amp; Conductor, no malefic pairs, good compound number.</p>
+    <div id="sug-locked-msg" style="display:none">
+      <div class="abox ainfo"><span class="aicon">&#128274;</span><span>Please enter your Date of Birth in the Analyze tab first.</span></div>
+    </div>
+    <div id="sug-builder" style="display:none">
+      <label class="lbl">Filter Digits (tap: none &rarr; must include &rarr; exclude)</label>
+      <div class="dbuilder" id="dbuilder"></div>
+      <button class="gen-btn" onclick="doGenerate()">&#9889; Generate Compatible Numbers</button>
+    </div>
+  </div>
+  <div id="out-suggestions"></div>
+</div>
+
+<!-- RULES TAB -->
+<div id="tab-rules" style="display:none">
+  <div class="stitle">Golden Rules</div>
+  <div class="rgrid">
+    <div class="rcard rcard-ok"><div class="ricon">&#10003;</div><div class="rtitle">No Zeros</div><div class="rdesc">Zero dilutes energy. A zero-free number has cleaner, stronger vibration.</div></div>
+    <div class="rcard rcard-ok"><div class="ricon">&#9889;</div><div class="rtitle">59/95 at Pos 3-4</div><div class="rdesc">Mercury+Mars at digits 3-4 or 4-5 = sharp intellect and financial drive.</div></div>
+    <div class="rcard rcard-ok"><div class="ricon">&#9733;</div><div class="rtitle">Total 1,3,5 or 6</div><div class="rdesc">Most auspicious mobile totals. Total 5 is safe for all Mulank numbers.</div></div>
+    <div class="rcard rcard-ok"><div class="ricon">&#9775;</div><div class="rtitle">Mulank Friendly</div><div class="rdesc">Mobile total must not be an enemy of your birth day number.</div></div>
+    <div class="rcard rcard-ok"><div class="ricon">&#9784;</div><div class="rtitle">Bhagyank Friendly</div><div class="rdesc">Mobile total must not be an enemy of your life path number.</div></div>
+    <div class="rcard rcard-ok"><div class="ricon">&#9997;</div><div class="rtitle">Name Aligned</div><div class="rdesc">Chaldean Name Number should be friendly with your mobile total.</div></div>
+    <div class="rcard rcard-ok"><div class="ricon">&#127919;</div><div class="rtitle">Good Compound</div><div class="rdesc">The 2-digit sum before final reduction matters. Avoid karmic compounds 13,14,16,19.</div></div>
+    <div class="rcard rcard-ok"><div class="ricon">&#9651;</div><div class="rtitle">Last Digit Auspicious</div><div class="rdesc">Last digit should ideally be 1,3,5,6 or 9. Never end in 4 or 8.</div></div>
+    <div class="rcard rcard-no"><div class="ricon">&#10007;</div><div class="rtitle">Avoid 14/41</div><div class="rdesc">Loans, liabilities, legal issues. Avoid anywhere in your number.</div></div>
+    <div class="rcard rcard-no"><div class="ricon">&#10007;</div><div class="rtitle">Avoid 18/81</div><div class="rdesc">Disputes with father, relationship friction. Avoid anywhere.</div></div>
+    <div class="rcard rcard-no"><div class="ricon">&#10007;</div><div class="rtitle">Avoid 28/82</div><div class="rdesc">Depression risk, partnership issues. Avoid anywhere.</div></div>
+    <div class="rcard rcard-no"><div class="ricon">&#10007;</div><div class="rtitle">Avoid 27/72</div><div class="rdesc">Health instability, joint issues. Avoid anywhere.</div></div>
+    <div class="rcard rcard-no"><div class="ricon">&#10007;</div><div class="rtitle">No Triple Digits</div><div class="rdesc">Any digit 3+ times creates intense imbalance.</div></div>
+    <div class="rcard rcard-no"><div class="ricon">&#10007;</div><div class="rtitle">Total 4 or 8</div><div class="rdesc">Saturn/Rahu totals cause delays and friction in daily communication.</div></div>
+  </div>
+
+  <div class="stitle">Best Total by Profession</div>
+  <div class="card" style="padding:14px">
+    <div class="prof-grid" id="prof-guide"></div>
+  </div>
+
+  <div class="stitle">Compound Number Meanings (Key ones)</div>
+  <div class="card" style="padding:14px;overflow-x:auto">
+    <table class="etable" id="compound-table"></table>
+  </div>
+
+  <div class="stitle">Enemy Number Chart</div>
+  <div class="card" style="padding:14px;overflow-x:auto">
+    <table class="etable" id="enemy-table"></table>
+  </div>
+
+  <div class="stitle">Pair Meanings</div>
+  <div class="card" style="padding:14px;overflow-x:auto">
+    <table class="etable" id="pair-table"></table>
+  </div>
+</div>
+
+</div>
+<footer>&#9784; Crafted with intention &amp; numbers &bull; Harish Kumar MP &#9784;</footer>
+
+<script>
+var userGender = 'M';
+var rulesBuilt = false;
+var digitFilter = {};
+var savedProfile = {driver:null,conductor:null,kua:null,nameNum:null,hasDOB:false};
+
+var PLANETS = {1:'Sun',2:'Moon',3:'Jupiter',4:'Rahu',5:'Mercury',6:'Venus',7:'Ketu',8:'Saturn',9:'Mars'};
+var KUADIR  = {1:'North',2:'SW',3:'East',4:'SE',5:'SW/NE',6:'NW',7:'West',8:'NE',9:'South'};
+var TRAITS  = {
+  1:{n:'Leadership',   d:'Independent, pioneering. Ruled by Sun.'},
+  2:{n:'Harmony',      d:'Cooperative, intuitive. Ruled by Moon.'},
+  3:{n:'Creativity',   d:'Expressive, optimistic. Ruled by Jupiter.'},
+  4:{n:'Stability',    d:'Practical, disciplined. Ruled by Rahu.'},
+  5:{n:'Freedom',      d:'Adventurous, versatile. Ruled by Mercury.'},
+  6:{n:'Nurturing',    d:'Loving, responsible. Ruled by Venus.'},
+  7:{n:'Mysticism',    d:'Spiritual, analytical. Ruled by Ketu.'},
+  8:{n:'Power',        d:'Ambitious, karmic. Ruled by Saturn.'},
+  9:{n:'Universal',    d:'Compassionate, wise. Ruled by Mars.'}
+};
+
+// Verified enemy table (JC Chaudhry / Chaldean)
+var ENEMIES = {1:[8],2:[4,6,8,9],3:[6],4:[2,4,8,9],5:[],6:[3,9],7:[],8:[1,2,4,8,9],9:[2,4,6]};
+
+// Compound number meanings (Cheiro - key ones relevant to mobile totals 10-90)
+var COMPOUND = {
+  10:{m:'Wheel of Fortune',t:'ok',d:'Rise and fall; powerful if one takes right action. Fame potential.'},
+  11:{m:'Challenges',t:'warn',d:'Betrayal risk, difficulties from others. Hidden dangers.'},
+  12:{m:'Self-Sacrifice',t:'warn',d:'Suffering due to others. Sacrifice in early stages.'},
+  13:{m:'Transformation',t:'karmic',d:'Karmic debt. Change and upheaval. Hard work required.'},
+  14:{m:'Karmic Debt',t:'karmic',d:'Danger from natural forces. Risk in speculation, financial instability.'},
+  15:{m:'Magic & Occult',t:'ok',d:'Lucky if no 4 or 8 in number. Strong willpower, mysterious attraction.'},
+  16:{m:'Tower Struck',t:'karmic',d:'Karmic debt. Unexpected downfall and accidents. Warnings given.'},
+  17:{m:'Star of the Magi',t:'ok',d:'Immortality, spiritual, very fortunate. Public recognition.'},
+  18:{m:'Materialism',t:'warn',d:'Conflict between spiritual and material. Danger from water.'},
+  19:{m:'Karmic Debt',t:'karmic',d:'Karmic debt number. Struggles for independence. Late rewards.'},
+  20:{m:'Awakening',t:'ok',d:'Spiritual awakening. New purpose found. Delays but good outcomes.'},
+  21:{m:'Crown of Magi',t:'ok',d:'Success in later life. Honors, rewards, victory.'},
+  22:{m:'Caution',t:'warn',d:'Tread carefully. Illusions and delusions. Unpredictable.'},
+  23:{m:'Royal Star',t:'ok',d:'Help from superiors and authorities. Success and assistance.'},
+  24:{m:'Love & Money',t:'ok',d:'Success in love and financial matters. Helpful friends.'},
+  25:{m:'Strength',t:'ok',d:'Gains through experience. Strength from past struggles.'},
+  26:{m:'Partnerships',t:'warn',d:'Warnings about partnerships and business associations. Losses.'},
+  27:{m:'Commander',t:'ok',d:'Leadership, authorship, power. Promising for those in command.'},
+  28:{m:'Trials',t:'warn',d:'Promises not fulfilled. Loss through opposition.'},
+  29:{m:'Uncertainties',t:'warn',d:'Uncertainties and fluctuations. Treachery from others.'},
+  30:{m:'Meditation',t:'neutral',d:'Neither fortunate nor unfortunate. Depends entirely on mental attitude.'},
+  31:{m:'Solitude',t:'neutral',d:'Solitude and isolation. Self-contained, eccentric.'},
+  32:{m:'Communication',t:'ok',d:'Magnetic personality. Success through communication.'},
+  33:{m:'Master Teacher',t:'ok',d:'Highly spiritual. Teaching and leadership at highest level.'},
+  34:{m:'Hard Work',t:'neutral',d:'Rewards come through hard effort. Similar to 25.'},
+  35:{m:'Commerce',t:'neutral',d:'Artistic and business acumen. Moderate success.'},
+  36:{m:'Wisdom',t:'ok',d:'Spiritual and mental wisdom. Rewards of discipline.'},
+  37:{m:'Friendship',t:'ok',d:'Personal pleasure, happiness, love. Good partnerships.'},
+  38:{m:'Partnerships 2',t:'warn',d:'Similar to 29. Treachery and deception from partners.'},
+  39:{m:'Plans',t:'neutral',d:'Good planner and executor. Similar to 30.'},
+  40:{m:'Discipline',t:'ok',d:'Structured, disciplined, determined. Similar to 31.'},
+  41:{m:'Achievement',t:'ok',d:'Achievement through personal effort. Similar to 32.'},
+  42:{m:'Fluctuations',t:'warn',d:'Uncertain outcomes. Similar to 24 in some respects.'},
+  43:{m:'Revolution',t:'warn',d:'Strife, failure, and revolution. Unfortunate.'},
+  44:{m:'Doubles',t:'warn',d:'Power but also heavy responsibility and karmic weight.'},
+  45:{m:'Practical',t:'ok',d:'Practical ability, good sense. Good for business.'},
+  46:{m:'Leadership',t:'ok',d:'Ambition and leadership. Powerful but demands responsibility.'},
+  47:{m:'Promise',t:'ok',d:'Promising outcomes through persistence and foresight.'},
+  48:{m:'Conflict',t:'warn',d:'Incurable problems, blood issues, depression and stress.'},
+  49:{m:'Success Delayed',t:'neutral',d:'Success after hard work. Possible criminal element.'},
+  50:{m:'Adaptable',t:'neutral',d:'Adaptable and independent. Neither very fortunate nor unfortunate.'},
+  51:{m:'Warrior',t:'ok',d:'High potency, warrior energy. Leadership and sudden advancement.'},
+  52:{m:'Intellect',t:'ok',d:'Literary ability and intellect. Success through writing and communication.'},
+  53:{m:'Duality',t:'warn',d:'Similar to 44. Tension between ambition and ethics.'},
+  54:{m:'Struggle',t:'warn',d:'Effort without commensurate reward. Delays.'},
+  55:{m:'Freedom Plus',t:'ok',d:'Extra Mercury energy - movement, communication, adaptability.'},
+  56:{m:'Change',t:'warn',d:'Constant change and fluctuation. Restlessness.'},
+  57:{m:'True Business',t:'ok',d:'Carries quality of a true businessman. Mercury+Ketu.'},
+  58:{m:'Mixed',t:'neutral',d:'Variable fortunes. Hard work brings some reward.'},
+  59:{m:'Sharp Intellect',t:'ok',d:'Mercury+Mars: sharp minded, financially aware, driven.'},
+  60:{m:'Spiritual Peace',t:'ok',d:'Peace and spirituality. Inner calm and contentment.'},
+  63:{m:'Spiritual Depth',t:'ok',d:'Venus+Jupiter: love, learning, and spiritual depth.'},
+  64:{m:'Reversals',t:'warn',d:'Unexpected reversals. Struggle with stability.'},
+  65:{m:'Strong Will',t:'ok',d:'Determined and purposeful. Venus+Mercury energy.'},
+  66:{m:'Luxuries',t:'ok',d:'Comfort and relationship success. Material pleasures.'},
+  72:{m:'Joint Issues',t:'warn',d:'Ketu+Moon: health instability and ups and downs.'},
+  81:{m:'Saturn Dominant',t:'warn',d:'Heavy Saturn over Sun: father disputes, legal issues.'},
+  82:{m:'Depression',t:'warn',d:'Saturn+Moon: emotional strain, depression, partnerships.'}
+};
+
+var KARMIC_COMPOUNDS = [13,14,16,19];
+
+var PAIR_DATA = {
+  '12':{l:'Saves money / Attractive',t:'good'},
+  '21':{l:'Wastes money / Attractive',t:'warn'},
+  '13':{l:'Spiritual / Fame',t:'good'},'31':{l:'Spiritual / Fame',t:'good'},
+  '15':{l:'Good Money / Less Effort',t:'good'},'51':{l:'Good Money',t:'good'},
+  '17':{l:'Govt / Corporate',t:'good'},'71':{l:'Govt / Corporate',t:'good'},
+  '19':{l:'Passionate Work Ethics',t:'good'},'91':{l:'Passionate Work',t:'good'},
+  '25':{l:'Healer / Occult',t:'good'},'52':{l:'Healer / Occult',t:'good'},
+  '29':{l:'Strong Financial Status',t:'good'},'92':{l:'Financial Status',t:'good'},
+  '37':{l:'Rise to Top',t:'good'},'73':{l:'Rise to Top',t:'good'},
+  '57':{l:'True Businessman',t:'good'},'75':{l:'Business Quality',t:'good'},
+  '59':{l:'Mercury+Mars / Sharp Mind',t:'star'},'95':{l:'Mars+Mercury / Intuitive',t:'star'},
+  '66':{l:'Luxury & Relationships',t:'good'},'67':{l:'Music / Arts',t:'good'},'76':{l:'Music / Arts',t:'good'},
+  '68':{l:'Medicine / Surgery',t:'good'},'86':{l:'Medicine',t:'good'},
+  '69':{l:'Creative / Events',t:'good'},'96':{l:'Creative',t:'good'},
+  '77':{l:'Social Networking',t:'good'},
+  '14':{l:'Loans / Legal',t:'bad'},'41':{l:'Loans / Legal',t:'bad'},
+  '16':{l:'Partner Health Issues',t:'bad'},'61':{l:'Partner Health',t:'bad'},
+  '18':{l:'Father Disputes',t:'bad'},'81':{l:'Father Disputes',t:'bad'},
+  '23':{l:'Child Disputes',t:'bad'},'32':{l:'Child Disputes',t:'bad'},
+  '24':{l:'Negativity',t:'bad'},'42':{l:'Negativity',t:'bad'},
+  '26':{l:'Education Issues',t:'bad'},'62':{l:'Education Issues',t:'bad'},
+  '27':{l:'Joint / Health',t:'bad'},'72':{l:'Joint / Health',t:'bad'},
+  '28':{l:'Depression Risk',t:'bad'},'82':{l:'Depression Risk',t:'bad'},
+  '34':{l:'Family Distance',t:'bad'},'43':{l:'Family Distance',t:'bad'},
+  '35':{l:'Financial Stress',t:'bad'},'53':{l:'Financial Stress',t:'bad'},
+  '48':{l:'Depression & Stress',t:'bad'},'84':{l:'Incurable Problems',t:'bad'},
+  '49':{l:'Hard Work / Criminal',t:'warn'},'94':{l:'Delayed Success',t:'warn'}
+};
+
+var LOSHU_ORDER = [4,9,2,3,5,7,8,1,6];
+// Lo Shu planes: Mental (4,9,2), Emotional (3,5,7), Practical (8,1,6)
+var PLANES = [
+  {name:'Mental',nums:[4,9,2],desc:'Thinking, analysis, intellect'},
+  {name:'Emotional',nums:[3,5,7],desc:'Feelings, intuition, spirituality'},
+  {name:'Practical',nums:[8,1,6],desc:'Action, drive, material world'}
+];
+
+var CHALDEAN = {
+  A:1,B:2,C:3,D:4,E:5,F:8,G:3,H:5,I:1,
+  J:1,K:2,L:3,M:4,N:5,O:7,P:8,Q:1,R:2,
+  S:3,T:4,U:6,V:6,W:6,X:5,Y:1,Z:7
+};
+
+// Profession ideal totals (verified from multiple numerology sources)
+var PROF_TOTALS = {
+  business:  {best:[6,5,1],desc:'6 (Venus) for relationships & deals; 5 for adaptability; 1 for leadership'},
+  corporate: {best:[1,3,5],desc:'1 (Sun) for authority; 3 for communication; 5 for versatility'},
+  govt:      {best:[1,4,7],desc:'1 for leadership; 4 for discipline; 7 for intelligence & mystery'},
+  creative:  {best:[3,6,9],desc:'3 (Jupiter) for expression; 6 for aesthetics; 9 for inspiration'},
+  sales:     {best:[5,3,6],desc:'5 (Mercury) for communication & travel; 3 for persuasion; 6 for rapport'},
+  health:    {best:[6,2,7],desc:'6 (Venus) for healing; 2 for cooperation; 7 for research & spirituality'},
+  spiritual: {best:[7,9,3],desc:'7 (Ketu) for mysticism; 9 for universal wisdom; 3 for teaching'},
+  finance:   {best:[8,6,1],desc:'8 (Saturn) for wealth accumulation; 6 for balance; 1 for authority'},
+  tech:      {best:[5,7,1],desc:'5 for innovation; 7 for analytical depth; 1 for pioneering solutions'}
+};
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function reduce(n) {
+  n = Math.abs(parseInt(n, 10));
+  while (n > 9) {
+    var s = 0; var str = String(n);
+    for (var i = 0; i < str.length; i++) s += parseInt(str[i], 10);
+    n = s;
+  }
+  return n;
+}
+
+// Get compound (2-digit pre-reduction) of a sum
+function getCompound(sum) {
+  sum = Math.abs(parseInt(sum, 10));
+  // Already single digit - no compound
+  if (sum <= 9) return sum;
+  // If > 99, reduce once more
+  while (sum > 99) {
+    var s = 0; var str = String(sum);
+    for (var i = 0; i < str.length; i++) s += parseInt(str[i], 10);
+    sum = s;
+  }
+  return sum;
+}
+
+function isEnemy(a, b) {
+  var list = ENEMIES[a];
+  if (!list) return false;
+  for (var i = 0; i < list.length; i++) { if (list[i] === b) return true; }
+  return false;
+}
+
+function compatPct(mobRoot, profNum) {
+  if (!profNum) return 65;
+  if (isEnemy(profNum, mobRoot) || isEnemy(mobRoot, profNum)) return 28;
+  if (mobRoot === profNum) return isEnemy(mobRoot, mobRoot) ? 35 : 82;
+  return 78;
+}
+
+function calcDriver(day) { return reduce(day); }
+
+function calcConductor(dd, mm, yyyy) {
+  var str = String(dd) + String(mm) + String(yyyy);
+  var s = 0;
+  for (var i = 0; i < str.length; i++) s += parseInt(str[i], 10);
+  return reduce(s);
+}
+
+function calcKua(yyyy, g) {
+  var s = 0; var str = String(yyyy % 100);
+  for (var i = 0; i < str.length; i++) s += parseInt(str[i], 10);
+  while (s > 9) { var t = 0; var ss = String(s); for (var j = 0; j < ss.length; j++) t += parseInt(ss[j], 10); s = t; }
+  var kua;
+  if (yyyy < 2000) { kua = (g === 'M') ? (10 - s) : reduce(s + 5); }
+  else             { kua = (g === 'M') ? (9  - s) : reduce(s + 6); }
+  if (kua <= 0) kua += 9;
+  if (kua === 5) kua = (g === 'M') ? 2 : 8;
+  return reduce(kua);
+}
+
+function calcName(name) {
+  if (!name || !name.length) return null;
+  var upper = name.toUpperCase(); var s = 0;
+  for (var i = 0; i < upper.length; i++) { if (CHALDEAN[upper[i]]) s += CHALDEAN[upper[i]]; }
+  return s > 0 ? reduce(s) : null;
+}
+
+function arrContains(arr, val) {
+  for (var i = 0; i < arr.length; i++) { if (arr[i] === val) return true; }
+  return false;
+}
+
+function segmentRoot(str) {
+  var s = 0;
+  for (var i = 0; i < str.length; i++) s += parseInt(str[i], 10);
+  return reduce(s);
+}
+
+// ============================================================
+// TAB / GENDER
+// ============================================================
+function showTab(name) {
+  var tabs = ['analyze','suggest','rules'];
+  for (var i = 0; i < tabs.length; i++) {
+    var el  = document.getElementById('tab-' + tabs[i]);
+    var btn = document.getElementById('t-'   + tabs[i]);
+    if (el)  el.style.display  = (tabs[i] === name) ? 'block' : 'none';
+    if (btn) btn.className = 'tab-btn' + (tabs[i] === name ? ' active' : '');
+  }
+  if (name === 'suggest') initSuggest();
+  if (name === 'rules' && !rulesBuilt) { buildRules(); rulesBuilt = true; }
+}
+
+function setGender(g) {
+  userGender = g;
+  document.getElementById('gbtn-m').className = 'gbtn' + (g === 'M' ? ' active' : '');
+  document.getElementById('gbtn-f').className = 'gbtn' + (g === 'F' ? ' active' : '');
+}
+
+// ============================================================
+// MAIN ANALYZE
+// ============================================================
+function doAnalyze() {
+  var rawInput = document.getElementById('inp-mobile').value;
+  var clean = '';
+  for (var ci = 0; ci < rawInput.length; ci++) { var ch = rawInput[ci]; if (ch >= '0' && ch <= '9') clean += ch; }
+  var dob  = document.getElementById('inp-dob').value;
+  var name = document.getElementById('inp-name').value;
+  var prof = document.getElementById('inp-prof').value;
+
+  if (clean.indexOf('0') > -1) {
+    document.getElementById('sec-results').style.display = 'block';
+    document.getElementById('sec-results').innerHTML =
+      '<div class="abox awarn"><span class="aicon">&#9888;</span>' +
+      '<div><strong>Number contains a zero!</strong><br>In mobile numerology, zeros dilute energy. Please use a zero-free number.</div></div>';
+    document.getElementById('sec-results').scrollIntoView();
+    return;
+  }
+  if (clean.length < 6) { alert('Please enter at least 6 digits.'); return; }
+
+  var raw = clean;
+
+  // === Core calculations ===
+  var totalSum = 0;
+  for (var i = 0; i < raw.length; i++) totalSum += parseInt(raw[i], 10);
+  var compound = getCompound(totalSum);   // e.g. 45
+  var mobRoot  = reduce(compound);         // e.g. 9
+
+  var last4sum = 0; var last4str = raw.length >= 4 ? raw.slice(raw.length - 4) : raw;
+  for (var i = 0; i < last4str.length; i++) last4sum += parseInt(last4str[i], 10);
+  var last4Root = reduce(last4sum);
+
+  var firstDigit  = parseInt(raw[0], 10) || 9;
+  var lastDigit   = parseInt(raw[raw.length - 1], 10) || 9;
+
+  // Segments: first 3, middle 4, last 3
+  var seg1 = raw.length >= 3  ? raw.slice(0, 3)                : raw;
+  var seg2 = raw.length >= 7  ? raw.slice(3, 7)               : '';
+  var seg3 = raw.length >= 10 ? raw.slice(7, 10)              : (raw.length >= 3 ? raw.slice(raw.length-3) : raw);
+  var seg1Root = segmentRoot(seg1);
+  var seg2Root = seg2.length > 0 ? segmentRoot(seg2) : null;
+  var seg3Root = segmentRoot(seg3);
+
+  // Pairs
+  var pairs = [];
+  for (var i = 0; i < raw.length - 1; i++) pairs.push(raw[i] + raw[i + 1]);
+  var has59 = (pairs.length > 2 && (pairs[2] === '59' || pairs[2] === '95')) ||
+              (pairs.length > 3 && (pairs[3] === '59' || pairs[3] === '95'));
+
+  // Digit frequency
+  var freq = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+  for (var i = 0; i < raw.length; i++) { var d = parseInt(raw[i], 10); if (d >= 1 && d <= 9) freq[d]++; }
+  var missing = [];
+  for (var d = 1; d <= 9; d++) { if (freq[d] === 0) missing.push(d); }
+
+  // Bad pairs
+  var BAD = ['14','41','18','81','28','82','27','72'];
+  var foundBad = [];
+  for (var i = 0; i < pairs.length; i++) {
+    if (arrContains(BAD, pairs[i]) && !arrContains(foundBad, pairs[i])) foundBad.push(pairs[i]);
+  }
+  var hasMalefic = foundBad.length > 0;
+
+  // Triple repeat
+  var hasTriple = false;
+  for (var d = 1; d <= 9; d++) { if (freq[d] >= 3) { hasTriple = true; break; } }
+
+  // Karmic compound
+  var isKarmic = arrContains(KARMIC_COMPOUNDS, compound);
+
+  // Last digit check
+  var lastGood   = arrContains([1,3,5,6,9], lastDigit);
+  var lastBad    = arrContains([4,8], lastDigit);
+
+  // First digit series
+  var firstSeries = {6:'Airtel / Idea (Venus - Business, Love)',7:'BSNL / Airtel (Ketu - Spiritual, Research)',
+                     8:'Airtel / Jio (Saturn - Power, Discipline)',9:'Jio / Vodafone (Mars - Energy, Passion)'};
+
+  // Profile
+  var driver = null, conductor = null, kua = null, nameNum = null, hasDOB = false;
+  if (dob && dob.length > 0) {
+    var parts = dob.split('-');
+    if (parts.length === 3) {
+      var yyyy = parseInt(parts[0],10), mm = parseInt(parts[1],10), dd = parseInt(parts[2],10);
+      if (!isNaN(yyyy) && !isNaN(mm) && !isNaN(dd)) {
+        driver = calcDriver(dd); conductor = calcConductor(dd,mm,yyyy); kua = calcKua(yyyy,userGender); hasDOB = true;
+      }
+    }
+  }
+  var trimName = name.replace(/^\s+|\s+$/g,'');
+  if (trimName.length > 0) nameNum = calcName(trimName);
+  savedProfile = {driver:driver,conductor:conductor,kua:kua,nameNum:nameNum,hasDOB:hasDOB};
+
+  var driverOK    = !driver    || !isEnemy(driver,    mobRoot);
+  var conductorOK = !conductor || !isEnemy(conductor, mobRoot);
+  var kuaOK       = !kua       || !isEnemy(kua,       mobRoot);
+  var nameOK      = !nameNum   || !isEnemy(nameNum,   mobRoot);
+  var totalOK     = arrContains([1,3,5,6], mobRoot);
+
+  // Profession alignment
+  var profOK = false;
+  if (prof && PROF_TOTALS[prof]) {
+    profOK = arrContains(PROF_TOTALS[prof].best, mobRoot);
+  }
+
+  // === SCORE ===
+  var score = 42;
+  if (totalOK) score += 18; else if (arrContains([4,8], mobRoot)) score -= 12; else score += 5;
+  if (has59)      score += 12;
+  if (!hasMalefic) score += 10; else score -= (7 * foundBad.length);
+  if (!hasTriple)  score += 5;  else score -= 5;
+  if (lastGood)    score += 5;  else if (lastBad) score -= 5;
+  if (!isKarmic)   score += 5;  else score -= 8;
+  if (driver    && driverOK)    score += 8; else if (driver)    score -= 8;
+  if (conductor && conductorOK) score += 8; else if (conductor) score -= 8;
+  if (kua       && kuaOK)       score += 4; else if (kua)       score -= 4;
+  if (nameNum   && nameOK)      score += 4; else if (nameNum)   score -= 4;
+  if (prof && profOK)           score += 6;
+  if (missing.length <= 3) score += 3;
+  if (missing.length >= 7) score -= 6;
+  if (score < 8) score = 8; if (score > 98) score = 98;
+
+  // ===== RENDER PROFILE =====
+  if (hasDOB || nameNum) {
+    var phtml = '';
+    if (driver    !== null) phtml += '<div class="pnum"><div class="pv">'+driver+'</div><div class="pl">Driver (Mulank)</div><div class="pd">Birth day reduced</div></div>';
+    if (conductor !== null) phtml += '<div class="pnum"><div class="pv">'+conductor+'</div><div class="pl">Conductor (Bhagyank)</div><div class="pd">Full DOB reduced</div></div>';
+    if (kua       !== null) phtml += '<div class="pnum"><div class="pv">'+kua+'</div><div class="pl">Kua Number</div><div class="pd">Lucky: '+(KUADIR[kua]||'')+'</div></div>';
+    if (nameNum   !== null) phtml += '<div class="pnum"><div class="pv">'+nameNum+'</div><div class="pl">Name Number</div><div class="pd">Chaldean system</div></div>';
+    document.getElementById('out-profile').innerHTML = phtml;
+    document.getElementById('sec-profile').style.display = 'block';
+  } else { document.getElementById('sec-profile').style.display = 'none'; }
+
+  // ===== SCORE + VERDICT WIDGET =====
+  document.getElementById('out-score').textContent = score;
+  setTimeout(function(){
+    var meter = document.getElementById('verdict-meter');
+    if (meter) {
+      meter.style.width = score + '%';
+      meter.style.background = 'linear-gradient(90deg,#ff4757 0%,#ffa502 35%,#D4AF37 60%,#2ed573 100%)';
+    }
+  }, 80);
+  var keepEl   = document.getElementById('vact-keep');
+  var tweakEl  = document.getElementById('vact-tweak');
+  var changeEl = document.getElementById('vact-change');
+  var summaryEl= document.getElementById('verdict-summary');
+  if (keepEl)   keepEl.className   = 'vact vact-keep';
+  if (tweakEl)  tweakEl.className  = 'vact vact-tweak';
+  if (changeEl) changeEl.className = 'vact vact-change';
+  var summaryTxt = '';
+  if (score >= 70) {
+    if (keepEl) keepEl.className = 'vact vact-keep vact-active';
+    summaryTxt = '<span style="color:#2ed573;font-size:.82rem;font-weight:700">&#10003; Verdict: Keep this number</span><br><span style="font-size:.72rem;color:#c8c4e0">Your number scores well and aligns with your numerology profile.</span>';
+  } else if (score >= 48) {
+    if (tweakEl) tweakEl.className = 'vact vact-tweak vact-active';
+    summaryTxt = '<span style="color:#D4AF37;font-size:.82rem;font-weight:700">&#9998; Verdict: Tweak if possible</span><br><span style="font-size:.72rem;color:#c8c4e0">Small corrections (operator series, last digit) could significantly improve your number.</span>';
+  } else {
+    if (changeEl) changeEl.className = 'vact vact-change vact-active';
+    summaryTxt = '<span style="color:#ff4757;font-size:.82rem;font-weight:700">&#8635; Verdict: Consider changing</span><br><span style="font-size:.72rem;color:#c8c4e0">This number has significant conflicts. Use the Suggest tab to find a better-aligned number.</span>';
+  }
+  if (summaryEl) summaryEl.innerHTML = summaryTxt;
+
+  // ===== CHECKLIST =====
+  var checks = [
+    {pass:true,           label:'No zeros in number',              detail:'Clean energy flow confirmed'},
+    {pass:totalOK,        label:'Total is 1, 3, 5 or 6',          detail:'Total: '+mobRoot+' ('+PLANETS[mobRoot]+')' +(totalOK?' - Auspicious':' - Not ideal')},
+    {pass:!isKarmic,      label:'No karmic compound (13/14/16/19)',detail:'Compound: '+compound+(isKarmic?' - KARMIC DEBT WARNING':' - Clear')},
+    {pass:has59,          label:'59 or 95 at positions 3-4/4-5',  detail:has59?'Mercury+Mars energy found!':'Not present'},
+    {pass:lastGood,       label:'Last digit auspicious (1,3,5,6,9)',detail:'Last digit: '+lastDigit+(lastGood?' - Good':(lastBad?' - Avoid':'- Neutral'))},
+    {pass:!hasMalefic,    label:'No malefic pairs',                detail:hasMalefic?'Found: '+foundBad.join(', '):'All clear'},
+    {pass:!hasTriple,     label:'No triple-repeat digits',         detail:hasTriple?'A digit appears 3+ times':'Good balance'},
+    {pass:driverOK,       label:'Driver compatible',               detail:driver?'Driver '+driver+' vs Total '+mobRoot+(driverOK?' - OK':' - Conflict'):'Enter DOB to check',unk:!driver},
+    {pass:conductorOK,    label:'Conductor compatible',            detail:conductor?'Conductor '+conductor+' vs Total '+mobRoot+(conductorOK?' - OK':' - Conflict'):'Enter DOB to check',unk:!conductor},
+    {pass:kuaOK,          label:'Kua compatible',                  detail:kua?'Kua '+kua+' vs Total '+mobRoot+(kuaOK?' - OK':' - Conflict'):'Enter DOB to check',unk:!kua},
+    {pass:nameOK,         label:'Name Number compatible',          detail:nameNum?'Name '+nameNum+' vs Total '+mobRoot+(nameOK?' - OK':' - Conflict'):'Enter name to check',unk:!nameNum},
+    {pass:profOK,         label:'Profession aligned',              detail:prof?(profOK?'Total '+mobRoot+' is ideal for '+prof:PROF_TOTALS[prof].desc):'Select profession to check',unk:!prof}
+  ];
+
+  var chtml = '';
+  for (var i = 0; i < checks.length; i++) {
+    var c = checks[i];
+    var cls = c.unk ? 'chk unk' : (c.pass ? 'chk pass' : 'chk fail');
+    var icon = c.unk ? '?' : (c.pass ? '\u2713' : '\u2717');
+    chtml += '<div class="'+cls+'"><div class="chk-icon">'+icon+'</div>';
+    chtml += '<div class="chk-text"><div class="chk-main">'+c.label+'</div>';
+    chtml += '<div class="chk-sub">'+c.detail+'</div></div></div>';
+  }
+  document.getElementById('out-checklist').innerHTML = chtml;
+
+  // ===== 59 ALERT =====
+  var a59 = document.getElementById('out-alert59');
+  if (has59) {
+    a59.innerHTML = '<div class="abox aok"><span class="aicon">&#9889;</span><div><strong>59/95 at positions 3-4 or 4-5!</strong><br>Mercury+Mars: sharp intellect, financial drive, professional success.</div></div>';
+  } else {
+    a59.innerHTML = '<div class="abox awarn"><span class="aicon">&#9888;</span><div><strong>No 59/95 at critical positions.</strong><br>Use the Suggest tab to find a number with this combination.</div></div>';
+  }
+
+  // ===== COMPOUND =====
+  var compInfo = COMPOUND[compound];
+  var compHtml = '';
+  if (compInfo) {
+    var ctype = compInfo.t;
+    var ccolor = ctype==='ok'?'var(--green)':(ctype==='karmic'?'var(--red)':(ctype==='warn'?'var(--orange)':'var(--muted)'));
+    var cbadge = ctype==='karmic'?' cb-karmic':(ctype==='ok'?' cb-ok':(ctype==='warn'?' cb-warn':' cb-neutral'));
+    compHtml = '<div class="card" style="padding:16px">';
+    compHtml += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+    compHtml += '<span style="font-size:1.6rem;color:var(--gold2)">'+compound+'</span>';
+    compHtml += '<span style="font-size:.7rem;letter-spacing:.06em;color:'+ccolor+'"><strong>'+compInfo.m+'</strong></span>';
+    compHtml += '<span class="compound-badge'+cbadge+'">'+(ctype==='ok'?'Auspicious':(ctype==='karmic'?'Karmic Debt':(ctype==='warn'?'Caution':'Neutral')))+'</span>';
+    compHtml += '</div>';
+    compHtml += '<div style="font-size:.8rem;color:#c8c4e0;line-height:1.6">'+compInfo.d+'</div>';
+    if (isKarmic) {
+      compHtml += '<div style="margin-top:10px;font-size:.78rem;color:#ffb3ba;line-height:1.5"><strong>Karmic Debt Warning:</strong> Compound '+compound+' carries karmic debt energy. This does not mean the number is unusable, but the person must work harder to overcome its challenges. Remedy: strengthen your name vibration or choose alternate operator number.</div>';
+    }
+    compHtml += '</div>';
+  } else {
+    compHtml = '<div class="card" style="padding:14px"><div style="font-size:.82rem;color:#c8c4e0">Compound number <strong style="color:var(--gold2)">'+compound+'</strong> reduces to <strong style="color:var(--gold)">'+mobRoot+'</strong> ('+PLANETS[mobRoot]+'). Compound is in upper range; final root vibration dominates.</div></div>';
+  }
+  document.getElementById('out-compound').innerHTML = compHtml;
+
+  // ===== SEGMENTS =====
+  var segHtml = '';
+  segHtml += '<div class="nc"><div class="nv-sm">'+seg1Root+'</div><div class="nn">First 3 digits</div><div class="np">Outgoing / First impression</div><div class="np">'+PLANETS[seg1Root]+'</div></div>';
+  if (seg2Root !== null) {
+    segHtml += '<div class="nc"><div class="nv-sm">'+seg2Root+'</div><div class="nn">Middle 4 digits</div><div class="np">Core / Daily energy</div><div class="np">'+PLANETS[seg2Root]+'</div></div>';
+  }
+  segHtml += '<div class="nc"><div class="nv-sm">'+seg3Root+'</div><div class="nn">Last 3 digits</div><div class="np">Incoming / Closing energy</div><div class="np">'+PLANETS[seg3Root]+'</div></div>';
+  document.getElementById('out-segments').innerHTML = segHtml;
+
+  // ===== PAIRS =====
+  var pairHtml = '';
+  for (var i = 0; i < pairs.length; i++) {
+    var p = pairs[i]; var info = PAIR_DATA[p]; var isCrit = (i === 2 || i === 3);
+    var cls = 'pp';
+    if (info) { if (info.t==='star') cls='pp pp-star'; else if (info.t==='good') cls='pp pp-good'; else if (info.t==='bad') cls='pp pp-bad'; }
+    var lbl = info ? info.l : 'Neutral';
+    var crit = isCrit ? ' <span class="crit-mark">\u2605</span>' : '';
+    pairHtml += '<div class="'+cls+'"><div class="ppn">'+p+crit+'</div><div class="ppm">'+lbl+'</div></div>';
+  }
+  document.getElementById('out-pairs').innerHTML = pairHtml;
+
+  // ===== CORE NUMBERS =====
+  var psum = 0; var pcnt = 0;
+  for (var i = 0; i < raw.length - 1; i += 2) { if (i+1 < raw.length) { psum += parseInt(raw[i],10)+parseInt(raw[i+1],10); pcnt++; } }
+  var aprRoot = pcnt > 0 ? reduce(Math.round(psum/pcnt)) : mobRoot;
+  var nhtml = '';
+  nhtml += '<div class="nc"><div class="nv">'+mobRoot+'</div><div class="nn">Total Root</div><div class="np">'+PLANETS[mobRoot]+'</div></div>';
+  nhtml += '<div class="nc"><div class="nv">'+last4Root+'</div><div class="nn">Last 4 Root</div><div class="np">'+PLANETS[last4Root]+'</div></div>';
+  nhtml += '<div class="nc"><div class="nv">'+firstDigit+'</div><div class="nn">First Digit</div><div class="np">'+(firstSeries[firstDigit]||PLANETS[firstDigit]||'')+'</div></div>';
+  nhtml += '<div class="nc"><div class="nv">'+lastDigit+'</div><div class="nn">Last Digit</div><div class="np">'+(lastGood?'Auspicious ending':(lastBad?'Avoid - change if possible':'Neutral ending'))+'</div></div>';
+  document.getElementById('out-nums').innerHTML = nhtml;
+
+  // ===== LO SHU + PLANES =====
+  var lhtml = '';
+  for (var i = 0; i < LOSHU_ORDER.length; i++) {
+    var n = LOSHU_ORDER[i]; var present = freq[n] > 0;
+    lhtml += '<div class="lsc '+(present?'lsc-p':'lsc-m')+'">'+n+'</div>';
+  }
+  document.getElementById('out-loshu').innerHTML = lhtml;
+
+  var planeHtml = '';
+  for (var pi = 0; pi < PLANES.length; pi++) {
+    var pl = PLANES[pi]; var presentNums = []; var absentNums = [];
+    for (var ni = 0; ni < pl.nums.length; ni++) {
+      if (freq[pl.nums[ni]] > 0) presentNums.push(pl.nums[ni]);
+      else absentNums.push(pl.nums[ni]);
+    }
+    var full = presentNums.length === 3;
+    var partial = presentNums.length > 0 && presentNums.length < 3;
+    var empty = presentNums.length === 0;
+    var statusColor = full ? 'var(--green)' : (partial ? 'var(--gold)' : 'var(--red)');
+    var statusText  = full ? 'Strong' : (partial ? 'Partial' : 'Missing');
+    planeHtml += '<div class="plane-card">';
+    planeHtml += '<div class="plane-title">'+pl.name+' Plane</div>';
+    planeHtml += '<div class="plane-nums">'+pl.nums.join(' - ')+'</div>';
+    planeHtml += '<div class="plane-status" style="color:'+statusColor+'">'+statusText+'</div>';
+    planeHtml += '<div style="font-size:.6rem;color:var(--muted);margin-top:3px">'+pl.desc+'</div>';
+    if (empty) planeHtml += '<div style="font-size:.6rem;color:#ffb3ba;margin-top:3px">'+pl.name+' energy absent</div>';
+    planeHtml += '</div>';
+  }
+  document.getElementById('out-planes').innerHTML = planeHtml;
+
+  // ===== COMPAT =====
+  var compItems = [];
+  if (driver    !== null) compItems.push({k:'Driver ('    +driver+    ')', c:compatPct(mobRoot,driver)});
+  if (conductor !== null) compItems.push({k:'Conductor (' +conductor+  ')', c:compatPct(mobRoot,conductor)});
+  if (kua       !== null) compItems.push({k:'Kua ('       +kua+        ')', c:compatPct(mobRoot,kua)});
+  if (nameNum   !== null) compItems.push({k:'Name ('      +nameNum+    ')', c:compatPct(mobRoot,nameNum)});
+  if (compItems.length > 0) {
+    var cohtml = '';
+    for (var i = 0; i < compItems.length; i++) {
+      var ci2 = compItems[i];
+      cohtml += '<div class="cc"><div class="cl">'+ci2.k+' vs Mobile ('+mobRoot+')</div>';
+      cohtml += '<div class="cv">'+ci2.c+'%</div><div class="cd">Compatibility</div>';
+      cohtml += '<div class="bw"><div class="bf" style="width:'+ci2.c+'%"></div></div></div>';
+    }
+    document.getElementById('out-compat').innerHTML = cohtml;
+    document.getElementById('sec-compat').style.display = 'block';
+  } else { document.getElementById('sec-compat').style.display = 'none'; }
+
+  // ===== FREQ =====
+  var dhtml = '';
+  for (var d = 1; d <= 9; d++) {
+    var cnt = freq[d];
+    dhtml += '<div class="dp'+(cnt >= 2?' dp-hl':'')+'"><span class="dv">'+d+'</span><span class="dc">'+cnt+'x</span></div>';
+  }
+  document.getElementById('out-freq').innerHTML = dhtml;
+
+  // ===== PROFESSION =====
+  if (prof && PROF_TOTALS[prof]) {
+    var pt = PROF_TOTALS[prof];
+    var pBoxHtml = '<div style="font-size:.8rem;color:#c8c4e0;line-height:1.6">';
+    pBoxHtml += '<strong style="color:var(--gold)">Ideal totals for '+prof+':</strong> ';
+    pBoxHtml += pt.best.join(', ') + '<br>' + pt.desc + '<br><br>';
+    if (profOK) {
+      pBoxHtml += '<span style="color:#2ed573"><strong>&#10003; Your mobile total '+mobRoot+' is ideal for '+prof+'.</strong></span>';
+    } else {
+      pBoxHtml += '<span style="color:#ffa502">Your mobile total '+mobRoot+' is not in the ideal range for '+prof+'. Best to aim for a total of '+pt.best[0]+'.</span>';
+    }
+    pBoxHtml += '</div>';
+    document.getElementById('out-profession').innerHTML = pBoxHtml;
+    document.getElementById('sec-profession').style.display = 'block';
+  } else { document.getElementById('sec-profession').style.display = 'none'; }
+
+  // ===== INSIGHTS =====
+  var ihtml = '';
+  var rt = TRAITS[mobRoot];
+  ihtml += '<div class="iitem"><strong>Total '+mobRoot+' (Compound '+compound+') - '+rt.n+':</strong> '+rt.d+(compInfo?' Compound meaning: '+compInfo.m+' - '+compInfo.d:'')+'</div>';
+  if (has59)      ihtml += '<div class="iitem"><strong>59/95 at positions 3-4 or 4-5:</strong> Mercury-Mars synergy gives sharp analytical mind, strong drive and financial acumen.</div>';
+  if (isKarmic)   ihtml += '<div class="iitem"><strong>Karmic Compound '+compound+':</strong> Carries karmic debt energy. Requires more conscious effort and discipline from the user. Strengthen with name correction or choose alternate series if possible.</div>';
+  if (hasMalefic) ihtml += '<div class="iitem"><strong>Malefic pairs ('+foundBad.join(', ')+'):</strong> 14/41 = financial liabilities; 18/81 = paternal disputes; 28/82 = depression risk; 27/72 = health instability.</div>';
+  if (!lastGood)  ihtml += '<div class="iitem"><strong>Last digit '+lastDigit+' ('+PLANETS[lastDigit]+'):</strong> '+(lastBad?'Avoid endings in 4 (Rahu) or 8 (Saturn) - they close each call on heavy, blocked energy.':'Consider a number ending in 1, 3, 5, 6 or 9 for more auspicious closing energy.')+'</div>';
+  ihtml += '<div class="iitem"><strong>First digit '+firstDigit+' - Operator series:</strong> '+(firstSeries[firstDigit]||PLANETS[firstDigit]+' energy')+'. The first digit sets the planetary tone of how people receive your call.</div>';
+  ihtml += '<div class="iitem"><strong>Segment energy:</strong> First 3 digits root '+seg1Root+' ('+PLANETS[seg1Root]+') = how you project outward. '+(seg2Root?'Middle root '+seg2Root+' ('+PLANETS[seg2Root]+') = daily core energy. ':'')+'Last 3 root '+seg3Root+' ('+PLANETS[seg3Root]+') = how calls conclude.</div>';
+  if (driver)     ihtml += '<div class="iitem"><strong>Driver '+driver+' ('+TRAITS[driver].n+'):</strong> Your Mulank. '+TRAITS[driver].d+'</div>';
+  if (conductor)  ihtml += '<div class="iitem"><strong>Conductor '+conductor+' ('+TRAITS[conductor].n+'):</strong> Your Bhagyank. '+TRAITS[conductor].d+'</div>';
+  if (kua)        ihtml += '<div class="iitem"><strong>Kua '+kua+':</strong> Lucky direction: '+(KUADIR[kua]||'')+'. Group: '+(arrContains([1,3,4,9],kua)?'East':'West')+'.</div>';
+  if (nameNum)    ihtml += '<div class="iitem"><strong>Name Number '+nameNum+' ('+TRAITS[nameNum].n+'):</strong> Chaldean vibration. '+TRAITS[nameNum].d+'</div>';
+  if (missing.length > 0) {
+    var mnames = [];
+    for (var i = 0; i < missing.length; i++) mnames.push(TRAITS[missing[i]]?TRAITS[missing[i]].n:String(missing[i]));
+    ihtml += '<div class="iitem"><strong>Missing digits ('+missing.join(', ')+'):</strong> Weaker '+mnames.join(', ')+' energy. Lo Shu shows '+(missing.length>=5?'heavy':'some')+' gaps.</div>';
+  }
+  document.getElementById('out-insights').innerHTML = ihtml;
+
+  // ===== RECOMMENDATION =====
+  var passCount = 0; var totalChecked = 0;
+  for (var i = 0; i < checks.length; i++) {
+    if (!checks[i].unk) { totalChecked++; if (checks[i].pass) passCount++; }
+  }
+  var rtx = '';
+  if (score >= 85) {
+    rtx = '<p><strong>Excellent number!</strong> Passes '+passCount+'/'+totalChecked+' checks. Highly compatible with your profile.</p>';
+    if (has59) rtx += '<p>The 59/95 at positions 3-4/4-5 amplifies Mercury-Mars energy for sharp decisions and wealth attraction.</p>';
+  } else if (score >= 70) {
+    rtx = '<p><strong>Good number.</strong> Passes '+passCount+'/'+totalChecked+' checks.';
+    if (!has59) rtx += ' A number with 59/95 at positions 3-4 would be stronger.';
+    if (hasMalefic) rtx += ' Note the malefic pair(s): '+foundBad.join(', ')+'.';
+    rtx += '</p><p>Use the <strong>Suggest</strong> tab to explore better options.</p>';
+  } else if (score >= 48) {
+    rtx = '<p><strong>Neutral number.</strong> Passes '+passCount+'/'+totalChecked+' checks. ';
+    if (!totalOK)  rtx += 'Total '+mobRoot+' not ideal (aim for 1/3/5/6). ';
+    if (!has59)    rtx += 'Missing 59/95 at critical positions. ';
+    if (isKarmic)  rtx += 'Karmic compound '+compound+' adds challenges. ';
+    rtx += '</p><p>Use the <strong>Suggest</strong> tab for a better number.</p>';
+  } else {
+    rtx = '<p><strong>Consider switching.</strong> Only '+passCount+'/'+totalChecked+' checks passed.';
+    if (!driverOK && driver)       rtx += ' Driver '+driver+' conflicts with total '+mobRoot+'.';
+    if (!conductorOK && conductor) rtx += ' Conductor '+conductor+' also conflicts.';
+    if (isKarmic)                  rtx += ' Karmic compound '+compound+' adds significant difficulty.';
+    rtx += '</p><p>Go to the <strong>Suggest</strong> tab to generate a fully compatible number.</p>';
+  }
+  document.getElementById('out-rec').innerHTML = rtx;
+
+  // ===== REMEDIES =====
+  var needsRemedy = score < 70 || hasMalefic || isKarmic || !lastGood || (!driverOK && driver) || (!conductorOK && conductor);
+  if (needsRemedy) {
+    var remHtml = '<div class="remedy-title">&#9997; Remedies &amp; Corrections</div>';
+    if (!totalOK || (!driverOK && driver) || (!conductorOK && conductor)) {
+      remHtml += '<p><strong>1. Switch operator series:</strong> Request the same last 7 digits on a different series (e.g. switch from 8xxx to 9xxx). This changes your first digit and can shift the total.</p>';
+    }
+    if (hasMalefic) {
+      remHtml += '<p><strong>2. Malefic pair remedy:</strong> If you cannot change the number, use a Yantra or gem matched to the conflicting planet: 14/41 = wear citrine (Sun-Mercury remedy); 18/81 = wear blue sapphire substitute (Saturn); 28/82 = Moonstone (Moon-Saturn balance); 27/72 = Cat\'s eye (Ketu).</p>';
+    }
+    if (isKarmic) {
+      remHtml += '<p><strong>3. Karmic compound '+compound+' remedy:</strong> Strengthen your name vibration through Chaldean name correction. Chant the planetary mantra of the ruling planet of '+mobRoot+' ('+PLANETS[mobRoot]+') 108 times daily.</p>';
+    }
+    if (!lastGood) {
+      remHtml += '<p><strong>4. Last digit remedy:</strong> If possible, get a number ending in 1, 3, 5, 6 or 9. Alternatively save your contacts as slightly altered display names to shift the visual resonance.</p>';
+    }
+    remHtml += '<p><strong>5. Number wallpaper remedy:</strong> Set your phone wallpaper to a yantra matching your Driver number ('+( driver||'calculate by DOB')+') to amplify compatible energy daily.</p>';
+    document.getElementById('out-remedy').innerHTML = remHtml;
+    document.getElementById('sec-remedy').style.display = 'block';
+  } else {
+    document.getElementById('sec-remedy').style.display = 'none';
+  }
+
+  document.getElementById('sec-results').style.display = 'block';
+  setTimeout(function(){
+    var ps = document.getElementById('sec-profile');
+    if (ps && ps.style.display !== 'none') ps.scrollIntoView();
+    else document.getElementById('sec-results').scrollIntoView();
+  }, 150);
+}
+
+// ============================================================
+// SUGGEST TAB
+// ============================================================
+function initSuggest() {
+  if (!savedProfile.hasDOB) {
+    document.getElementById('sug-locked-msg').style.display = 'block';
+    document.getElementById('sug-builder').style.display = 'none';
+    return;
+  }
+  document.getElementById('sug-locked-msg').style.display = 'none';
+  document.getElementById('sug-builder').style.display = 'block';
+  var db = document.getElementById('dbuilder');
+  if (db.innerHTML === '') {
+    var dbhtml = '';
+    for (var d = 1; d <= 9; d++) dbhtml += '<div class="dbox" id="db'+d+'" onclick="toggleDigit('+d+')">'+d+'</div>';
+    db.innerHTML = dbhtml;
+  }
+}
+
+function toggleDigit(d) {
+  var el = document.getElementById('db'+d); if (!el) return;
+  if (digitFilter[d] === 'req') { digitFilter[d] = 'bad'; el.className = 'dbox dbox-bad'; }
+  else if (digitFilter[d] === 'bad') { digitFilter[d] = undefined; el.className = 'dbox'; }
+  else { digitFilter[d] = 'req'; el.className = 'dbox dbox-req'; }
+}
+
+function scoreSuggest(raw, driver, conductor, kua, nameNum) {
+  if (raw.indexOf('0') > -1) return -1;
+  var digits = []; for (var i = 0; i < raw.length; i++) digits.push(parseInt(raw[i],10));
+  var dcount = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+  for (var i = 0; i < digits.length; i++) { if (digits[i]>=1&&digits[i]<=9) dcount[digits[i]]++; }
+  for (var d = 1; d <= 9; d++) { if (dcount[d] >= 3) return -1; }
+  var BAD = ['14','41','18','81','28','82','27','72'];
+  for (var i = 0; i < digits.length-1; i++) { var p=''+digits[i]+digits[i+1]; if (arrContains(BAD,p)) return -1; }
+  var s = 0; for (var i = 0; i < digits.length; i++) s += digits[i];
+  var compound2 = getCompound(s); var tot = reduce(compound2);
+  if (driver    && isEnemy(driver,    tot)) return -1;
+  if (conductor && isEnemy(conductor, tot)) return -1;
+  if (arrContains(KARMIC_COMPOUNDS, compound2)) return -1; // reject karmic compounds in suggestions
+  var lastD = digits[digits.length-1];
+  if (arrContains([4,8], lastD)) return -1; // reject bad last digits
+  var pairs2 = []; for (var i=0;i<digits.length-1;i++) pairs2.push(''+digits[i]+digits[i+1]);
+  var h59 = pairs2.length>2&&(pairs2[2]==='59'||pairs2[2]==='95'||(pairs2.length>3&&(pairs2[3]==='59'||pairs2[3]==='95')));
+  var sc = 50;
+  if (arrContains([1,3,5,6], tot)) sc += 18;
+  if (h59) sc += 20;
+  if (!kua    || !isEnemy(kua,    tot)) sc += 4;
+  if (!nameNum|| !isEnemy(nameNum,tot)) sc += 4;
+  if (arrContains([1,3,5,6,9], lastD)) sc += 5;
+  return sc;
+}
+
+function doGenerate() {
+  if (!savedProfile.hasDOB) return;
+  var driver = savedProfile.driver, conductor = savedProfile.conductor;
+  var kua = savedProfile.kua, nameNum = savedProfile.nameNum;
+  var required = [], forbidden = [];
+  for (var d = 1; d <= 9; d++) {
+    if (digitFilter[d] === 'req') required.push(d);
+    if (digitFilter[d] === 'bad') forbidden.push(d);
+  }
+  var goodTotals = [];
+  var allT = [1,3,5,6];
+  for (var i = 0; i < allT.length; i++) {
+    var t = allT[i];
+    if ((!driver||!isEnemy(driver,t)) && (!conductor||!isEnemy(conductor,t))) goodTotals.push(t);
+  }
+  if (goodTotals.length === 0) goodTotals = [5];
+
+  var starters = [9,8,7,6]; var results = []; var attempts = 0;
+  while (results.length < 8 && attempts < 80000) {
+    attempts++;
+    var digits = []; digits.push(starters[Math.floor(Math.random()*starters.length)]);
+    var use59 = Math.random() > 0.25;
+    while (digits.length < 10) {
+      var idx = digits.length;
+      if (use59 && idx === 2) { digits.push(5); continue; }
+      if (use59 && idx === 3) { digits.push(9); continue; }
+      digits.push(Math.floor(Math.random()*9)+1);
+    }
+    // Force last digit to be auspicious
+    var goodEndings = [1,3,5,6,9];
+    if (!arrContains(goodEndings, digits[9])) digits[9] = goodEndings[Math.floor(Math.random()*goodEndings.length)];
+    // Apply required
+    for (var ri = 0; ri < required.length; ri++) {
+      var found = false;
+      for (var di = 0; di < digits.length; di++) { if (digits[di]===required[ri]){found=true;break;} }
+      if (!found) digits[Math.floor(Math.random()*10)] = required[ri];
+    }
+    // Check forbidden
+    var hasForbidden = false;
+    for (var fi = 0; fi < forbidden.length; fi++) {
+      for (var di = 0; di < digits.length; di++) { if (digits[di]===forbidden[fi]){hasForbidden=true;break;} }
+      if (hasForbidden) break;
+    }
+    if (hasForbidden) continue;
+    // Adjust total
+    var rawSum = 0; for (var i = 0; i < digits.length; i++) rawSum += digits[i];
+    var curTot = reduce(getCompound(rawSum));
+    if (!arrContains(goodTotals, curTot)) {
+      var target = goodTotals[Math.floor(Math.random()*goodTotals.length)];
+      var sumFirst9 = 0; for (var i = 0; i < 9; i++) sumFirst9 += digits[i];
+      var adjusted = false;
+      for (var v = 1; v <= 9; v++) {
+        var cmpd = getCompound(sumFirst9 + v);
+        if (reduce(cmpd) === target && !arrContains(KARMIC_COMPOUNDS, cmpd) && arrContains(goodEndings, v)) {
+          digits[9] = v; adjusted = true; break;
+        }
+      }
+      if (!adjusted) continue;
+    }
+    var num = digits.join('');
+    if (num.indexOf('0') > -1) continue;
+    var sc = scoreSuggest(num, driver, conductor, kua, nameNum);
+    if (sc < 0) continue;
+    var isDup = false;
+    for (var ri = 0; ri < results.length; ri++) { if (results[ri].num===num){isDup=true;break;} }
+    if (isDup) continue;
+    results.push({num:num, score:sc});
+  }
+  // Sort
+  for (var i = 0; i < results.length-1; i++) {
+    for (var j = i+1; j < results.length; j++) {
+      if (results[j].score > results[i].score) { var tmp=results[i]; results[i]=results[j]; results[j]=tmp; }
+    }
+  }
+  if (results.length > 6) results = results.slice(0,6);
+  if (results.length === 0) {
+    document.getElementById('out-suggestions').innerHTML =
+      '<div class="abox awarn"><span class="aicon">&#9888;</span><div>No matching numbers found. Try removing digit filters and generate again.</div></div>';
+    return;
+  }
+  var shtml = '';
+  for (var i = 0; i < results.length; i++) {
+    var r = results[i]; var d = r.num;
+    var formatted = d[0]+d[1]+d[2]+d[3]+' '+d[4]+d[5]+d[6]+' '+d[7]+d[8]+d[9];
+    var rdigits = []; for (var j=0;j<d.length;j++) rdigits.push(parseInt(d[j],10));
+    var rtotSum = 0; for (var j=0;j<rdigits.length;j++) rtotSum+=rdigits[j];
+    var rcmp = getCompound(rtotSum); var rtot = reduce(rcmp);
+    var rpairs=[]; for(var j=0;j<rdigits.length-1;j++) rpairs.push(''+rdigits[j]+rdigits[j+1]);
+    var rhas59 = rpairs.length>2&&(rpairs[2]==='59'||rpairs[2]==='95'||(rpairs.length>3&&(rpairs[3]==='59'||rpairs[3]==='95')));
+    shtml += '<div class="sug-item" onclick="copyNum(\''+r.num+'\')">';
+    shtml += '<div class="sug-num">'+formatted+'</div>';
+    shtml += '<div class="sug-badges">';
+    shtml += '<span class="sb sb-o">Total: '+rtot+'</span>';
+    shtml += '<span class="sb sb-o">Compound: '+rcmp+'</span>';
+    if (rhas59) shtml += '<span class="sb sb-g">59/95 &#10003;</span>';
+    shtml += '<span class="sb sb-b">'+(PLANETS[rtot]||'')+'</span>';
+    var rlast = rdigits[rdigits.length-1];
+    if (arrContains([1,3,5,6,9],rlast)) shtml += '<span class="sb sb-g">Ends '+rlast+' &#10003;</span>';
+    shtml += '</div><div class="sug-note">Tap to copy &bull; Zero-free &bull; No karmic compound &bull; Auspicious ending</div></div>';
+  }
+  document.getElementById('out-suggestions').innerHTML = shtml;
+}
+
+function copyNum(n) {
+  if (navigator.clipboard) navigator.clipboard.writeText(n);
+  alert('Copied: '+n+'\n\nPaste in the Analyze tab to run a full check.');
+}
+
+// ============================================================
+// RULES TAB
+// ============================================================
+function buildRules() {
+  // Profession guide
+  var profLabels = {business:'Business',corporate:'Corporate',govt:'Government',creative:'Creative',
+                   sales:'Sales',health:'Health',spiritual:'Spiritual',finance:'Finance',tech:'Technology'};
+  var pgHtml = '';
+  var profKeys = ['business','corporate','govt','creative','sales','health','spiritual','finance','tech'];
+  for (var i = 0; i < profKeys.length; i++) {
+    var key = profKeys[i]; var pt = PROF_TOTALS[key];
+    pgHtml += '<div class="prof-item"><strong>'+profLabels[key]+'</strong>Best totals: '+pt.best.join(', ')+'</div>';
+  }
+  document.getElementById('prof-guide').innerHTML = pgHtml;
+
+  // Compound table - key ones
+  var ctHtml = '<tr><th>Compound</th><th>Name</th><th>Type</th><th>Meaning</th></tr>';
+  var ckeys = [10,13,14,15,16,17,18,19,21,23,24,25,27,32,37,43,45,48,51,52,57,59,66];
+  for (var i = 0; i < ckeys.length; i++) {
+    var key = ckeys[i]; var info = COMPOUND[key]; if (!info) continue;
+    var col = info.t==='ok'?'var(--green)':(info.t==='karmic'?'var(--red)':(info.t==='warn'?'var(--orange)':'var(--muted)'));
+    var typ = info.t==='ok'?'Auspicious':(info.t==='karmic'?'Karmic Debt':(info.t==='warn'?'Caution':'Neutral'));
+    ctHtml += '<tr><td><strong style="color:var(--gold2)">'+key+'</strong></td>';
+    ctHtml += '<td style="color:'+col+'">'+info.m+'</td>';
+    ctHtml += '<td style="color:'+col+'">'+typ+'</td>';
+    ctHtml += '<td>'+info.d+'</td></tr>';
+  }
+  document.getElementById('compound-table').innerHTML = ctHtml;
+
+  // Enemy table
+  var etData = [
+    {n:1,e:[8],f:[1,2,3,4,5,7,9]},{n:2,e:[4,6,8,9],f:[1,2,3,5]},
+    {n:3,e:[6],f:[1,2,3,5,9]},{n:4,e:[2,4,8,9],f:[1,5,6,7]},
+    {n:5,e:[],f:[1,2,3,4,5,6,7,8,9]},{n:6,e:[3,9],f:[1,5,6,7,8]},
+    {n:7,e:[],f:[1,2,3,4,5,6,7,8,9]},{n:8,e:[1,2,4,8,9],f:[3,5,6,7]},
+    {n:9,e:[2,4,6],f:[1,3,5,7,9]}
+  ];
+  var etHtml = '<tr><th>Number</th><th>Avoid (Enemy)</th><th>Seek (Friendly)</th></tr>';
+  for (var i = 0; i < etData.length; i++) {
+    var row = etData[i]; var ehtml = ''; var fhtml = '';
+    for (var j = 0; j < row.e.length; j++) ehtml += '<span class="enum en-r">'+row.e[j]+'</span>';
+    if (row.e.length === 0) ehtml = '<span style="color:#2ed573">None - universal!</span>';
+    for (var j = 0; j < row.f.length; j++) fhtml += '<span class="enum en-g">'+row.f[j]+'</span>';
+    etHtml += '<tr><td><strong style="color:var(--gold)">'+row.n+' ('+PLANETS[row.n]+')</strong></td><td>'+ehtml+'</td><td>'+fhtml+'</td></tr>';
+  }
+  document.getElementById('enemy-table').innerHTML = etHtml;
+
+  // Pair table
+  var ptHtml = '<tr><th>Pair</th><th>Meaning</th><th>Type</th></tr>';
+  var pkeys = ['13','15','17','19','25','29','37','57','59','95','67','68','69','77',
+               '14','16','18','23','24','27','28','34','35','48'];
+  for (var i = 0; i < pkeys.length; i++) {
+    var key = pkeys[i]; var rev = key[1]+key[0]; var info = PAIR_DATA[key]; if (!info) continue;
+    var col = info.t==='star'?'var(--gold)':(info.t==='good'?'var(--green)':'var(--red)');
+    var typ = info.t==='star'?'Special':(info.t==='good'?'Auspicious':'Avoid');
+    ptHtml += '<tr><td><strong style="color:'+col+'">'+key+' / '+rev+'</strong></td><td>'+info.l+'</td><td style="color:'+col+'">'+typ+'</td></tr>';
+  }
+  document.getElementById('pair-table').innerHTML = ptHtml;
+}
+
+function selProf(el, val) {
+  document.getElementById('inp-prof').value = val;
+  var all = document.querySelectorAll('.prof-opt');
+  for (var i = 0; i < all.length; i++) all[i].className = 'prof-opt';
+  el.className = 'prof-opt active';
+}
+
+document.getElementById('inp-mobile').addEventListener('keydown', function(e) {
+  if (e.keyCode === 13) doAnalyze();
+});
+</script>
+</body>
+</html>
