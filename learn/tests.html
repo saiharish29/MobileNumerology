@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tests — Numerology Core</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top-nav">
+    <a href="index.html">&larr; Back to Learn</a>
+    <div class="crumbs"><strong>Tests</strong></div>
+  </div>
+
+  <header class="page-head">
+    <span class="mandala">&#10052;</span>
+    <h1>Numerology Core — Test Runner</h1>
+    <div class="sub">Regression checks against known cases</div>
+  </header>
+
+  <div class="card">
+    <div id="test-summary"></div>
+    <div id="test-rows"></div>
+    <div class="sources" style="margin-top:20px">
+      <strong>Why these cases?</strong> Every assertion below either matches a verbatim
+      worked example from a cited authoritative source, or follows directly from the
+      classical formula. If any row fails, the calculators downstream are wrong - do not ship.
+    </div>
+  </div>
+
+</div>
+
+<script src="numerology-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var N = window.Numerology;
+  var results = [];
+
+  function t(name, actual, expected, note) {
+    var pass = JSON.stringify(actual) === JSON.stringify(expected);
+    results.push({ name: name, pass: pass, actual: actual, expected: expected, note: note || '' });
+  }
+
+  /* ===== reduce ===== */
+  t('reduce(9)',  N.reduce(9),  9);
+  t('reduce(10)', N.reduce(10), 1);
+  t('reduce(29)', N.reduce(29), 2,  '2+9=11 -> 1+1=2');
+  t('reduce(99)', N.reduce(99), 9,  '9+9=18 -> 1+8=9');
+  t('reduce(0)',  N.reduce(0),  0);
+
+  /* ===== Mulank (birth day reduced) =====
+     Source: muhuratam.in / panchangbodh.com
+     Born 27th -> Mulank 9 */
+  t('Mulank: day 1',  N.calcMulank(1),  1);
+  t('Mulank: day 23', N.calcMulank(23), 5,  '2+3=5');
+  t('Mulank: day 27', N.calcMulank(27), 9,  'panchangbodh.com example');
+  t('Mulank: day 29', N.calcMulank(29), 2,  '2+9=11 -> 2');
+  t('Mulank: day 31', N.calcMulank(31), 4,  '3+1=4');
+
+  /* ===== Bhagyank (full DOB reduced) =====
+     Source: panchangbodh.com worked example
+     27/03/1990 -> 2+7+0+3+1+9+9+0 = 31 -> 4 */
+  t('Bhagyank: 27/03/1990', N.calcBhagyank(27, 3, 1990), 4, 'panchangbodh.com verbatim');
+  t('Bhagyank: 01/01/2000', N.calcBhagyank(1, 1, 2000),  4, '0+1+0+1+2+0+0+0=4');
+  t('Bhagyank: 15/10/1997', N.calcBhagyank(15, 10, 1997), 6, '1+5+1+0+1+9+9+7=33 -> 6');
+
+  /* ===== Kua =====
+     Source: astroccult.net formula */
+  t('Kua 1985 M', N.calcKua(1985, 'M'), 6, '8+5=13 -> 4; 10-4=6');
+  t('Kua 1985 F', N.calcKua(1985, 'F'), 9, 'reduce(4)+5 -> reduce(9)=9');
+  t('Kua 1992 M', N.calcKua(1992, 'M'), 8, '9+2=11 -> 2; 10-2=8');
+  t('Kua 1992 F', N.calcKua(1992, 'F'), 7, '2+5=7');
+  t('Kua 2005 M', N.calcKua(2005, 'M'), 4, '0+5=5; 9-5=4');
+  t('Kua 2005 F', N.calcKua(2005, 'F'), 2, '5+6=11 -> 2');
+
+  /* 5-remap cases */
+  t('Kua 1995 M (5->2)', N.calcKua(1995, 'M'), 2, '9+5=14 -> 5; 10-5=5 -> male remaps to 2');
+  t('Kua 1959 M (5->2)', N.calcKua(1959, 'M'), 2, '5+9=14 -> 5; 10-5=5 -> 2');
+  t('Kua 2003 F (5->8)', N.calcKua(2003, 'F'), 8, '0+3=3; 3+6=9 ... wait check'); // computed below
+
+  /* Recompute 2003 F by hand: yy=03 -> s=3. F post-2000: s+6 = 9. Not 5-remap.
+     So the expected is 9, not 8. Adjusting: */
+  results.pop();
+  t('Kua 2003 F', N.calcKua(2003, 'F'), 9, '3+6=9 (no 5-remap needed)');
+
+  /* True 5-remap for female: need (s + 6) reducing to 5 after pre-2000 or post-2000.
+     Pre-2000 F: s+5 = 5 -> s=0. yy that reduces to 0? Year 1900 -> s=0; but that's a corner.
+     Use 1908 F: yy=08, s=8; s+5=13 -> 4. Not 5.
+     Pre-2000 F: s+5=5 only when s=0; happens for year 1900.
+     Post-2000 F: s+6=5 only when s=8 (8+6=14, reduce 5). Year 2017: yy=17, s=8 -> 5+6 -> 8+6=14->5 -> remap to 8.
+  */
+  t('Kua 2017 F (5->8)', N.calcKua(2017, 'F'), 8, '1+7=8; 8+6=14 -> 5; female remaps to 8');
+
+  /* ===== Li Chun (Feb 4) adjustment ===== */
+  t('liChun: 1995-01-15 -> 1994', N.liChunAdjustedYear(15, 1, 1995), 1994);
+  t('liChun: 1995-02-03 -> 1994', N.liChunAdjustedYear(3,  2, 1995), 1994);
+  t('liChun: 1995-02-04 -> 1995', N.liChunAdjustedYear(4,  2, 1995), 1995);
+  t('liChun: 1995-02-05 -> 1995', N.liChunAdjustedYear(5,  2, 1995), 1995);
+  t('liChun: 1995-12-31 -> 1995', N.liChunAdjustedYear(31,12, 1995), 1995);
+
+  /* ===== Lo Shu Grid from DOB =====
+     DOB 27/03/1990
+     Combined string "2731990" -> digits 2,7,3,1,9,9,0 (skip zero)
+     + Mulank(27)=9, + Bhagyank=4
+     Final counts: 1=1, 2=1, 3=1, 4=1, 5=0, 6=0, 7=1, 8=0, 9=3 */
+  var loshu = N.calcLoshuFromDOB(27, 3, 1990);
+  t('Lo Shu 27/03/1990: mulank',    loshu.mulank,    9);
+  t('Lo Shu 27/03/1990: bhagyank',  loshu.bhagyank,  4);
+  t('Lo Shu 27/03/1990: counts[1]', loshu.counts[1], 1);
+  t('Lo Shu 27/03/1990: counts[2]', loshu.counts[2], 1);
+  t('Lo Shu 27/03/1990: counts[3]', loshu.counts[3], 1);
+  t('Lo Shu 27/03/1990: counts[4]', loshu.counts[4], 1);
+  t('Lo Shu 27/03/1990: counts[5]', loshu.counts[5], 0);
+  t('Lo Shu 27/03/1990: counts[6]', loshu.counts[6], 0);
+  t('Lo Shu 27/03/1990: counts[7]', loshu.counts[7], 1);
+  t('Lo Shu 27/03/1990: counts[8]', loshu.counts[8], 0);
+  t('Lo Shu 27/03/1990: counts[9]', loshu.counts[9], 3);
+
+  /* Plane status checks for the same DOB:
+     Mental (4,9,2): 4=1, 9=3, 2=1 -> all present -> full
+     Emotional (3,5,7): 3=1, 5=0, 7=1 -> partial
+     Practical (8,1,6): 8=0, 1=1, 6=0 -> partial */
+  t('Plane Mental status',    N.planeStatus(loshu.counts, [4,9,2]), 'full');
+  t('Plane Emotional status', N.planeStatus(loshu.counts, [3,5,7]), 'partial');
+  t('Plane Practical status', N.planeStatus(loshu.counts, [8,1,6]), 'partial');
+
+  /* Column / arrow checks for the same DOB:
+     Will (9,5,1): 9=3, 5=0, 1=1 -> partial
+     Action (2,7,6): 2=1, 7=1, 6=0 -> partial */
+  t('Plane Will status',   N.planeStatus(loshu.counts, [9,5,1]), 'partial');
+  t('Plane Action status', N.planeStatus(loshu.counts, [2,7,6]), 'partial');
+
+  /* ===== Kua direction table integrity (spot check)
+     Verbatim from fengshuimall.com:
+       Kua 1: Sheng Chi=SE, Fu Wei=N
+       Kua 8: Sheng Chi=SW, Jueh Ming=SE */
+  t('Kua 1 Sheng Chi', N.KUA_DIRECTIONS[1].shengChi, 'SE');
+  t('Kua 1 Fu Wei',    N.KUA_DIRECTIONS[1].fuWei,    'N');
+  t('Kua 8 Sheng Chi', N.KUA_DIRECTIONS[8].shengChi, 'SW');
+  t('Kua 8 Jueh Ming', N.KUA_DIRECTIONS[8].juehMing, 'SE');
+  t('Kua 1 group',     N.KUA_DIRECTIONS[1].group,    'East');
+  t('Kua 2 group',     N.KUA_DIRECTIONS[2].group,    'West');
+
+  /* ===== parseISODate ===== */
+  t('parseISODate 1990-03-27', N.parseISODate('1990-03-27'), { dd:27, mm:3, yyyy:1990 });
+  t('parseISODate invalid',    N.parseISODate('not-a-date'), null);
+  t('parseISODate null',       N.parseISODate(null),         null);
+
+  /* ===== Render ===== */
+  var passCount = 0, failCount = 0;
+  for (var i = 0; i < results.length; i++) (results[i].pass ? passCount++ : failCount++);
+
+  var summary = document.getElementById('test-summary');
+  summary.className = 'test-summary ' + (failCount === 0 ? 'ok' : 'fail');
+  summary.textContent = failCount === 0
+    ? '✓ ' + passCount + ' / ' + results.length + ' passing'
+    : '✗ ' + failCount + ' failing of ' + results.length;
+
+  var rowsEl = document.getElementById('test-rows');
+  var html = '';
+  for (var j = 0; j < results.length; j++) {
+    var r = results[j];
+    html += '<div class="test-row ' + (r.pass ? 'pass' : 'fail') + '">';
+    html += '<div class="ti">' + (r.pass ? '✓' : '✗') + '</div>';
+    html += '<div><strong>' + r.name + '</strong>';
+    if (!r.pass) {
+      html += '<br><span style="font-size:.74rem">expected '
+           + JSON.stringify(r.expected) + ', got ' + JSON.stringify(r.actual) + '</span>';
+    }
+    if (r.note) {
+      html += '<br><span style="font-size:.7rem;color:#9e9bbf">' + r.note + '</span>';
+    }
+    html += '</div></div>';
+  }
+  rowsEl.innerHTML = html;
+})();
+</script>
+
+</body>
+</html>
