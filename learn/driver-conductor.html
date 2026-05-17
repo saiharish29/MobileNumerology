@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Driver &amp; Conductor Calculator — Mulank Bhagyank</title>
+<meta name="description" content="Calculate your Mulank (Driver) and Bhagyank (Conductor) from your date of birth. Discover your ruling planet, core traits, and life-path number.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="top-nav" aria-label="breadcrumb">
+    <a href="index.html">&larr; Learn</a>
+    <div class="crumbs"><strong>Driver &amp; Conductor</strong></div>
+  </nav>
+
+  <header class="page-head">
+    <span class="mandala" aria-hidden="true">&#9737;</span>
+    <h1>Driver &amp; Conductor</h1>
+    <div class="sub">Mulank &middot; Bhagyank &middot; Vedic Numerology</div>
+  </header>
+
+  <section class="explain" aria-labelledby="what-is">
+    <h3 id="what-is">What are Driver and Conductor?</h3>
+    <p>Two of the most fundamental personal numbers in Vedic numerology, both derived purely from your date of birth.</p>
+    <p><strong>Mulank (Driver / Birth Number)</strong> &mdash; the single-digit reduction of your <em>day</em> of birth. Reflects your outer personality, instincts and natural drive.</p>
+    <p><strong>Bhagyank (Conductor / Destiny Number)</strong> &mdash; the single-digit reduction of your <em>full</em> date of birth (day + month + year). Reflects your life path, opportunities and longer-arc purpose.</p>
+    <p><strong>Why both:</strong> the Driver shows how you operate day-to-day; the Conductor shows where life tends to lead you. When they harmonise, action and direction reinforce each other. When they conflict, life often feels like work pulling against instinct.</p>
+  </section>
+
+  <form class="card" id="dc-form" onsubmit="return false">
+    <label class="lbl" for="dob">Your Date of Birth</label>
+    <input class="inp" type="date" id="dob" required>
+    <span class="hint">Enter the calendar date &mdash; no time-zone or place needed.</span>
+
+    <button class="main-btn" type="submit" id="go">Calculate My Numbers</button>
+  </form>
+
+  <div id="results" aria-live="polite"></div>
+
+  <details class="card" style="margin-top:18px">
+    <summary style="cursor:pointer;color:var(--gold);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase">Method &amp; formula</summary>
+    <div style="padding-top:12px;font-size:.78rem;color:#d8d3ea;line-height:1.6">
+      <p style="margin-bottom:8px"><strong>Mulank:</strong> take only your birth day. If it is two digits, add them together until you get a single digit (1&ndash;9). Example: 27 &rarr; 2+7 = <strong>9</strong>.</p>
+      <p style="margin-bottom:8px"><strong>Bhagyank:</strong> add every digit of your full date of birth (dd + mm + all four year digits). Reduce the sum to a single digit. Example: 27/03/1990 &rarr; 2+7+0+3+1+9+9+0 = 31 &rarr; 3+1 = <strong>4</strong>.</p>
+      <p style="margin-bottom:0">Each single digit is governed by one of the nine Vedic planets (Navagraha): 1=Sun, 2=Moon, 3=Jupiter, 4=Rahu, 5=Mercury, 6=Venus, 7=Ketu, 8=Saturn, 9=Mars.</p>
+    </div>
+  </details>
+
+  <div class="sources" id="sources"></div>
+
+</div>
+
+<script src="numerology-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var N = window.Numerology;
+
+  /* ---------- Render sources footer ---------- */
+  (function renderSources() {
+    var html = '<strong>Sources used to build this calculator:</strong><br>';
+    var src = N.SOURCES.mulank;
+    for (var i = 0; i < src.length; i++) {
+      html += '&bull; <a href="' + src[i].url + '" target="_blank" rel="noopener">' + src[i].name + '</a><br>';
+    }
+    html += '<br><em>Mulank and Bhagyank formulas are universal across cited Vedic-numerology sources. Planet mapping follows the standard Vedic Navagraha.</em>';
+    document.getElementById('sources').innerHTML = html;
+  })();
+
+  /* ---------- Form ---------- */
+  document.getElementById('dc-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    runAnalysis();
+  });
+  document.getElementById('go').addEventListener('click', function (e) {
+    e.preventDefault();
+    runAnalysis();
+  });
+
+  function runAnalysis() {
+    var iso = document.getElementById('dob').value;
+    var parsed = N.parseISODate(iso);
+    if (!parsed) {
+      renderError('Please enter a valid date of birth.');
+      return;
+    }
+    var mulank   = N.calcMulank(parsed.dd);
+    var bhagyank = N.calcBhagyank(parsed.dd, parsed.mm, parsed.yyyy);
+    renderResults(mulank, bhagyank, parsed);
+  }
+
+  function renderError(msg) {
+    document.getElementById('results').innerHTML =
+      '<div class="abox awarn"><span class="aicon" aria-hidden="true">&#9888;</span><div>' + escapeHtml(msg) + '</div></div>';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  function renderResults(mulank, bhagyank, parsed) {
+    var html = '';
+    var dayStr   = pad2(parsed.dd);
+    var monthStr = pad2(parsed.mm);
+    var yearStr  = String(parsed.yyyy);
+
+    /* --- Header summary --- */
+    html += '<div class="card">';
+    html += '<div class="stitle" style="margin-top:0">For DOB ' + dayStr + '/' + monthStr + '/' + yearStr + '</div>';
+    html += '<div class="kv-grid">';
+    html += '<div class="kv">';
+    html += '<div class="kv-val">' + mulank + '</div>';
+    html += '<div class="kv-lbl">Mulank / Driver</div>';
+    html += '<div class="kv-desc">' + escapeHtml(N.PLANETS[mulank]) + ' &middot; ' + escapeHtml(N.TRAITS[mulank].name) + '</div>';
+    html += '</div>';
+    html += '<div class="kv">';
+    html += '<div class="kv-val">' + bhagyank + '</div>';
+    html += '<div class="kv-lbl">Bhagyank / Conductor</div>';
+    html += '<div class="kv-desc">' + escapeHtml(N.PLANETS[bhagyank]) + ' &middot; ' + escapeHtml(N.TRAITS[bhagyank].name) + '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+
+    /* --- Show the working --- */
+    html += '<div class="stitle">How these were calculated</div>';
+    html += '<div class="card">';
+    html += '<div class="abox ainfo" style="margin-bottom:10px"><span class="aicon" aria-hidden="true">&#10148;</span><div>';
+    html += '<strong>Mulank:</strong> day = ' + dayStr + ' &rarr; reduce(' + dayStr + ') = <strong>' + mulank + '</strong>';
+    if (parsed.dd > 9) {
+      var dayDigits = String(parsed.dd).split('').join(' + ');
+      html += '<br><span style="font-size:.74rem;color:#9e9bbf">step: ' + dayDigits + ' = ' + N.digitSum(String(parsed.dd)) + (N.digitSum(String(parsed.dd)) > 9 ? ' &rarr; ' + mulank : '') + '</span>';
+    }
+    html += '</div></div>';
+
+    var combined = dayStr + monthStr + yearStr;
+    var sumExpr = combined.split('').join(' + ');
+    var totalSum = N.digitSum(combined);
+    html += '<div class="abox ainfo"><span class="aicon" aria-hidden="true">&#10148;</span><div>';
+    html += '<strong>Bhagyank:</strong> ' + sumExpr + ' = ' + totalSum;
+    if (totalSum > 9) {
+      html += ' &rarr; reduce(' + totalSum + ') = <strong>' + bhagyank + '</strong>';
+    } else {
+      html += ' = <strong>' + bhagyank + '</strong>';
+    }
+    html += '</div></div>';
+    html += '</div>';
+
+    /* --- Detail: Mulank meaning --- */
+    html += '<div class="stitle">Your Driver (Mulank) ' + mulank + ' &mdash; ' + escapeHtml(N.TRAITS[mulank].name) + '</div>';
+    html += '<div class="card">';
+    html += traitDetail(mulank, 'Day-to-day personality and instinct');
+    html += '</div>';
+
+    /* --- Detail: Bhagyank meaning --- */
+    html += '<div class="stitle">Your Conductor (Bhagyank) ' + bhagyank + ' &mdash; ' + escapeHtml(N.TRAITS[bhagyank].name) + '</div>';
+    html += '<div class="card">';
+    html += traitDetail(bhagyank, 'Life-path direction and longer-arc purpose');
+    html += '</div>';
+
+    /* --- Harmony note --- */
+    html += '<div class="stitle">Driver &harr; Conductor</div>';
+    html += '<div class="card">';
+    if (mulank === bhagyank) {
+      html += '<div class="abox aok"><span class="aicon" aria-hidden="true">&#10026;</span><div><strong>Same number on both.</strong> Driver and Conductor align perfectly &mdash; your instincts and your life-path point in the same direction. This concentrates the energy of ' + escapeHtml(N.PLANETS[mulank]) + ' twice over, for better and for worse.</div></div>';
+    } else {
+      html += '<div class="abox ainfo"><span class="aicon" aria-hidden="true">&#9737;</span><div>You operate as a <strong>' + mulank + ' (' + escapeHtml(N.PLANETS[mulank]) + ')</strong> while life pulls you toward <strong>' + bhagyank + ' (' + escapeHtml(N.PLANETS[bhagyank]) + ')</strong>. The interplay shapes your story &mdash; how naturally you act vs. where opportunities tend to appear.</div></div>';
+    }
+    html += '</div>';
+
+    /* --- Educational footer --- */
+    html += '<div class="explain" style="margin-top:18px">';
+    html += '<h3>Common misconceptions</h3>';
+    html += '<p><strong>"My birth-day already is my number"</strong> &mdash; in numerology the day is reduced to a single digit. Born on the 27th? Your Mulank is 2+7 = 9, not 27.</p>';
+    html += '<p><strong>"I should change my behaviour to match my numbers"</strong> &mdash; the opposite. The numbers describe pre-existing tendencies; awareness lets you work <em>with</em> them rather than against.</p>';
+    html += '<p><strong>"My number means I will succeed/fail"</strong> &mdash; no single number predicts outcomes. Vedic numerology uses Mulank and Bhagyank alongside the Lo Shu Grid and Name Number for a multi-layered picture.</p>';
+    html += '</div>';
+
+    document.getElementById('results').innerHTML = html;
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function traitDetail(num, role) {
+    var t = N.TRAITS[num];
+    var p = N.PLANETS[num];
+    var html = '';
+    html += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">';
+    html += '<div style="font-size:2.6rem;color:var(--gold);font-weight:700;line-height:1">' + num + '</div>';
+    html += '<div>';
+    html += '<div style="font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">' + escapeHtml(role) + '</div>';
+    html += '<div style="font-size:1rem;color:var(--gold2)">' + escapeHtml(t.name) + '</div>';
+    html += '<div style="font-size:.74rem;color:#c8c4e0">Ruled by ' + escapeHtml(p) + '</div>';
+    html += '</div>';
+    html += '</div>';
+    html += '<p style="font-size:.85rem;color:#d8d3ea;line-height:1.6">' + escapeHtml(t.desc) + '</p>';
+    return html;
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+})();
+</script>
+
+</body>
+</html>

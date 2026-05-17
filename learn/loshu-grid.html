@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lo Shu Grid Calculator — Numerology</title>
+<meta name="description" content="Calculate your Lo Shu Grid from your date of birth. See your present numbers, missing arrows, and Mental/Emotional/Practical plane analysis.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="top-nav" aria-label="breadcrumb">
+    <a href="index.html">&larr; Learn</a>
+    <div class="crumbs"><strong>Lo Shu Grid</strong></div>
+  </nav>
+
+  <header class="page-head">
+    <span class="mandala" aria-hidden="true">&#9711;</span>
+    <h1>Lo Shu Grid Calculator</h1>
+    <div class="sub">Birth date &middot; 3 &times; 3 magic square</div>
+  </header>
+
+  <section class="explain" aria-labelledby="what-is">
+    <h3 id="what-is">What is the Lo Shu Grid?</h3>
+    <p>An ancient Chinese 3&times;3 magic square in which every row, column and diagonal sums to 15. In numerology it acts as a personal map: digits from your date of birth are placed into the grid, revealing which energies are present, repeated, or missing.</p>
+    <p><strong>Why it matters:</strong> a present number indicates a natural strength; a missing number flags an area to develop. Lines of three present numbers form "arrows" of strength; lines of three missing numbers form "arrows of absence" worth addressing.</p>
+  </section>
+
+  <form class="card" id="loshu-form" onsubmit="return false">
+    <label class="lbl" for="dob">Your Date of Birth</label>
+    <input class="inp" type="date" id="dob" required>
+    <span class="hint">Day, month and all four year digits are used.</span>
+
+    <button class="main-btn" type="submit" id="go">Generate My Grid</button>
+  </form>
+
+  <div id="results" aria-live="polite"></div>
+
+  <details class="card" style="margin-top:18px">
+    <summary style="cursor:pointer;color:var(--gold);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase">Method &amp; conventions used</summary>
+    <div style="padding-top:12px;font-size:.78rem;color:#d8d3ea;line-height:1.6">
+      <p style="margin-bottom:8px"><strong>Digits placed in the grid:</strong> every digit of your day, month and four-digit year. Zeros are skipped (the Lo Shu Grid has no zero cell).</p>
+      <p style="margin-bottom:8px"><strong>Added energies:</strong> per the common Vedic-numerology convention, your <em>Mulank</em> (birth day reduced) and <em>Bhagyank</em> (full DOB reduced) are added to the grid as well, enriching the reading.</p>
+      <p style="margin-bottom:8px"><strong>Repetitions matter:</strong> if a digit appears three times, the cell shows all three. Each occurrence amplifies that energy.</p>
+      <p style="margin-bottom:0"><strong>Plane status:</strong> <em>Full</em> = all three digits of the line are present; <em>Partial</em> = one or two are present; <em>Empty</em> = none are present (a "missing arrow" worth working on).</p>
+    </div>
+  </details>
+
+  <div class="sources" id="sources"></div>
+
+</div>
+
+<script src="numerology-core.js"></script>
+<script>
+(function () {
+  'use strict';
+  var N = window.Numerology;
+
+  /* ---------- Render sources footer ---------- */
+  (function renderSources() {
+    var html = '<strong>Sources used to build this calculator:</strong><br>';
+    var src = N.SOURCES.loshu.concat(N.SOURCES.mulank);
+    for (var i = 0; i < src.length; i++) {
+      html += '&bull; <a href="' + src[i].url + '" target="_blank" rel="noopener">' + src[i].name + '</a><br>';
+    }
+    html += '<br><em>This calculator follows the digit-conventions cited above. Cell layout (4-9-2 / 3-5-7 / 8-1-6) is the universal Lo Shu order.</em>';
+    document.getElementById('sources').innerHTML = html;
+  })();
+
+  /* ---------- Form ---------- */
+  document.getElementById('loshu-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    runAnalysis();
+  });
+  document.getElementById('go').addEventListener('click', function (e) {
+    e.preventDefault();
+    runAnalysis();
+  });
+
+  function runAnalysis() {
+    var iso = document.getElementById('dob').value;
+    var parsed = N.parseISODate(iso);
+    if (!parsed) {
+      renderError('Please enter a valid date of birth.');
+      return;
+    }
+    var result = N.calcLoshuFromDOB(parsed.dd, parsed.mm, parsed.yyyy);
+    if (!result) {
+      renderError('Could not compute Lo Shu Grid for that date.');
+      return;
+    }
+    renderResults(result, parsed);
+  }
+
+  function renderError(msg) {
+    document.getElementById('results').innerHTML =
+      '<div class="abox awarn"><span class="aicon" aria-hidden="true">&#9888;</span><div>' +
+      escapeHtml(msg) + '</div></div>';
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  function renderResults(result, parsed) {
+    var counts = result.counts;
+    var html = '';
+
+    /* --- Summary header --- */
+    html += '<div class="card">';
+    html += '<div class="stitle" style="margin-top:0">For DOB ' + pad2(parsed.dd) + '/' + pad2(parsed.mm) + '/' + parsed.yyyy + '</div>';
+    html += '<div class="kv-grid">';
+    html += '<div class="kv"><div class="kv-val">' + result.mulank   + '</div><div class="kv-lbl">Mulank (Driver)</div><div class="kv-desc">' + escapeHtml(N.TRAITS[result.mulank].name)   + '</div></div>';
+    html += '<div class="kv"><div class="kv-val">' + result.bhagyank + '</div><div class="kv-lbl">Bhagyank (Conductor)</div><div class="kv-desc">' + escapeHtml(N.TRAITS[result.bhagyank].name) + '</div></div>';
+    html += '</div>';
+    html += '</div>';
+
+    /* --- The grid --- */
+    html += '<div class="stitle">Your Lo Shu Grid</div>';
+    html += '<div class="card">';
+    html += '<div class="loshu-board" role="grid" aria-label="Lo Shu 3 by 3 grid">';
+    for (var i = 0; i < N.LOSHU_LAYOUT.length; i++) {
+      var n = N.LOSHU_LAYOUT[i];
+      var c = counts[n];
+      var fill = c > 0 ? repeatStr(String(n), c) : '';
+      var clsName = c > 0 ? 'loshu-cell filled' : 'loshu-cell empty';
+      html += '<div class="' + clsName + '" role="gridcell" aria-label="Cell ' + n + ', ' + (c > 0 ? c + ' occurrence' + (c > 1 ? 's' : '') : 'missing') + '">';
+      html += '<span class="loshu-cell-num" aria-hidden="true">' + n + '</span>';
+      html += '<span class="loshu-cell-fill">' + (fill || '&nbsp;') + '</span>';
+      html += '<span class="loshu-cell-planet">' + escapeHtml(N.PLANETS[n]) + '</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+
+    /* --- Plane analysis --- */
+    html += '<div class="stitle">Horizontal Planes</div>';
+    html += '<div class="card">' + planeBlock(N.LOSHU_PLANES.rows, counts) + '</div>';
+
+    html += '<div class="stitle">Vertical Planes</div>';
+    html += '<div class="card">' + planeBlock(N.LOSHU_PLANES.cols, counts) + '</div>';
+
+    html += '<div class="stitle">Diagonal Lines</div>';
+    html += '<div class="card">' + planeBlock(N.LOSHU_PLANES.diagonals, counts) + '</div>';
+
+    /* --- Missing-digit summary --- */
+    var missing = [];
+    var strong  = [];
+    for (var d = 1; d <= 9; d++) {
+      if (counts[d] === 0)     missing.push(d);
+      else if (counts[d] >= 3) strong.push({ n: d, c: counts[d] });
+    }
+
+    html += '<div class="stitle">Your numbers at a glance</div>';
+    html += '<div class="card">';
+    if (strong.length) {
+      html += '<p style="margin-bottom:10px;font-size:.85rem;color:#a0f0c0"><strong>Strongly present (3 or more):</strong></p>';
+      for (var s = 0; s < strong.length; s++) {
+        html += '<div class="abox agreen" style="margin-bottom:6px"><span class="aicon" aria-hidden="true">&#9650;</span><div><strong>' + strong[s].n + ' &times; ' + strong[s].c + '</strong> &mdash; ' + escapeHtml(N.TRAITS[strong[s].n].desc) + '</div></div>';
+      }
+    }
+    if (missing.length) {
+      html += '<p style="margin:14px 0 10px;font-size:.85rem;color:#ffb3ba"><strong>Missing numbers (areas to develop):</strong></p>';
+      for (var mi = 0; mi < missing.length; mi++) {
+        var mn = missing[mi];
+        html += '<div class="abox awarn" style="margin-bottom:6px"><span class="aicon" aria-hidden="true">&#9711;</span><div><strong>' + mn + ' &mdash; ' + escapeHtml(N.TRAITS[mn].name) + '</strong>: missing ' + escapeHtml(N.TRAITS[mn].desc) + '</div></div>';
+      }
+    } else {
+      html += '<div class="abox aok"><span class="aicon" aria-hidden="true">&#10026;</span><div><strong>No missing numbers.</strong> All nine energies are present in your grid &mdash; a rare full chart.</div></div>';
+    }
+    html += '</div>';
+
+    /* --- Educational footer --- */
+    html += '<div class="explain" style="margin-top:18px">';
+    html += '<h3>How to use this reading</h3>';
+    html += '<p><strong>Present numbers</strong> describe the qualities you naturally embody. Their planet rulers (shown beneath each cell) hint at the underlying energy.</p>';
+    html += '<p><strong>Full planes</strong> are arrows of strength &mdash; an inherent advantage in that domain (mental, emotional or practical).</p>';
+    html += '<p><strong>Empty planes</strong> are not curses; they point to areas where conscious effort, role-models or specific practices fill the gap.</p>';
+    html += '<p><strong>Remember:</strong> the grid is a frame for self-reflection, not a deterministic prediction. Pair it with the Driver/Conductor calculator for a fuller picture.</p>';
+    html += '</div>';
+
+    document.getElementById('results').innerHTML = html;
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function planeBlock(planes, counts) {
+    var html = '';
+    for (var i = 0; i < planes.length; i++) {
+      var p = planes[i];
+      var status = N.planeStatus(counts, p.nums);
+      var present = [];
+      for (var k = 0; k < p.nums.length; k++) if (counts[p.nums[k]] > 0) present.push(p.nums[k]);
+      var missingNums = [];
+      for (var m = 0; m < p.nums.length; m++) if (counts[p.nums[m]] === 0) missingNums.push(p.nums[m]);
+
+      var cls = 's-' + status;
+      var label = status === 'full' ? 'Full' : (status === 'empty' ? 'Missing' : 'Partial');
+
+      html += '<div class="plane-row">';
+      html += '<div class="plane-meta">';
+      html += '<div class="plane-name">' + escapeHtml(p.name) + '</div>';
+      html += '<div class="plane-digits">Digits ' + p.nums.join('-') + ' &middot; ' + escapeHtml(p.desc) + '</div>';
+      if (present.length && status !== 'full')   html += '<div class="plane-digits">Present: ' + present.join(', ') + '</div>';
+      if (missingNums.length && status !== 'empty') html += '<div class="plane-digits">Missing: ' + missingNums.join(', ') + '</div>';
+      html += '</div>';
+      html += '<div class="plane-status ' + cls + '">' + label + '</div>';
+      html += '</div>';
+    }
+    return html;
+  }
+
+  function repeatStr(s, n) {
+    var out = '';
+    for (var i = 0; i < n; i++) out += s;
+    return out;
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+})();
+</script>
+
+</body>
+</html>
